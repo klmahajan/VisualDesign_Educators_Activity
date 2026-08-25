@@ -992,7 +992,7 @@
     html += '<h3 class="section-heading">Part 2 &middot; Your Copy-Paste Prompt(s)</h3>';
     html += '<p class="section-sub">Already filled in with your branding choices. Click Copy, then paste into your AI tool.</p>';
 
-    window.PROMPTS = buildPrompts(d, task, b);
+    window.PROMPTS = buildPrompts(d, task, b, tools);
     window.PROMPTS.forEach(function(p, idx){
       html += '<div class="prompt-card"><div class="prompt-card-head"><h3>' + p.title + '</h3>' +
         '<button class="copy-btn" onclick="App.copyPrompt(' + idx + ', this)">Copy</button></div>' +
@@ -1024,6 +1024,7 @@
   --------------------------------------------------------------------- */
   function toolSteps(tool, task, deliverable){
     var dm = DELIVERABLE_META[deliverable];
+    var nd = agentNameAndDescription(deliverable);
     if(tool === "claude"){
       if(task === "generate") return [
         'Go to <strong>claude.ai</strong> (or open the Claude app) and sign in.',
@@ -1031,7 +1032,8 @@
         'Copy <strong>Prompt 1</strong> below and paste it into the message box.',
         'Where the prompt says to paste your idea or outline, replace that line with your own notes &mdash; or attach a file using the <strong>+</strong> button.',
         'Press enter. Claude will ask a few quick questions (audience, length, tone) &mdash; answer in a sentence or two.',
-        'Review the ' + dm.outline + ' Claude gives you, then ask for any changes before you consider it done.'
+        'Review the ' + dm.outline + ' Claude gives you, then ask for any changes before you consider it done.',
+        'Claude can generate an actual downloadable ' + fileWord(deliverable) + ' file directly in the chat. If it gives you plain text instead, ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file"</em> (look under Settings for a file-creation option if this doesn\'t work right away).'
       ];
       if(task === "improve") return [
         'Go to <strong>claude.ai</strong> and sign in.',
@@ -1043,10 +1045,11 @@
       return [
         'Go to <strong>claude.ai</strong> and sign in.',
         'In the left sidebar, click <strong>"Projects,"</strong> then <strong>"Create project."</strong>',
-        'Give it a name, such as "Course Design Assistant."',
-        'Open <strong>"Project instructions"</strong> (sometimes called "Custom instructions") inside the project.',
-        'Copy the full system prompt below and paste it in, then save.',
-        'From now on, start a new chat inside this project any time you want to turn a document into a ' + dm.outline + ' &mdash; just drop in your file.'
+        'Name it (e.g., "' + nd.name + '") and, if you\'d like, add a short description such as: <em>"' + nd.description + '"</em> &mdash; not required, but a helpful reminder when you come back to this later in the semester.',
+        'Open <strong>"Project instructions"</strong> and paste the full system prompt below into it, then save.',
+        'You\'ll also see a <strong>"Project knowledge"</strong> area on the project page &mdash; this is where you could optionally upload reference files (a past syllabus, your full style guide, example decks) for the project to pull from in every chat. You can leave it empty for now and add files anytime.',
+        'From now on, start a new chat inside this project any time you want to convert a document &mdash; paste one of the usage prompts below (or write your own) and attach your file.',
+        'Claude can generate an actual downloadable ' + fileWord(deliverable) + ' file directly in the chat. If it only gives you plain text, ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file"</em> (look under Settings for a file-creation option if this doesn\'t work right away).'
       ];
     }
     if(tool === "chatgpt"){
@@ -1056,7 +1059,8 @@
         'Copy <strong>Prompt 1</strong> below and paste it into the message box.',
         'Replace the placeholder line with your own idea or outline, or attach a file with the paperclip icon.',
         'Send it. ChatGPT will ask about audience, length, and tone &mdash; answer briefly.',
-        'Review the draft ' + dm.outline + ' and ask for edits before you\'re done.'
+        'Review the draft ' + dm.outline + ' and ask for edits before you\'re done.',
+        'To get an actual downloadable ' + fileWord(deliverable) + ' file instead of plain text, make sure <strong>Code Interpreter &amp; Data Analysis</strong> is available and ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file."</em>'
       ];
       if(task === "improve") return [
         'Go to <strong>chatgpt.com</strong> and sign in.',
@@ -1068,9 +1072,13 @@
         'Go to <strong>chatgpt.com</strong> and sign in.',
         'Click your name (bottom left), then <strong>"My GPTs,"</strong> then <strong>"Create a GPT."</strong>',
         'Switch to the <strong>"Configure"</strong> tab.',
-        'Give it a name (e.g., "Course Design Assistant") and paste the full system prompt below into the <strong>"Instructions"</strong> box.',
+        'Give it a Name (e.g., "' + nd.name + '") and a Description, such as: <em>"' + nd.description + '"</em>.',
+        'Paste the full system prompt below into the <strong>"Instructions"</strong> box.',
+        'You\'ll also see a <strong>"Knowledge"</strong> section &mdash; this is where you could optionally upload reference files for it to pull from. You can leave it empty for now and add files anytime later.',
+        'Under <strong>"Conversation starters,"</strong> add the suggestions below (one per box) &mdash; these appear as quick-click buttons before anyone types.',
+        'Under <strong>"Capabilities,"</strong> make sure <strong>Code Interpreter &amp; Data Analysis</strong> is turned on &mdash; this is what lets it hand you an actual downloadable file instead of plain text.',
         'Click <strong>"Save"</strong> and choose "Only me" unless you want to share it with colleagues.',
-        'Anytime you want to convert a document, open this GPT and drop in your file.'
+        'Anytime you want to convert a document, open this GPT and paste one of the usage prompts below (or write your own), then attach your file.'
       ];
     }
     if(tool === "copilot"){
@@ -1079,7 +1087,8 @@
         'Start a new conversation.',
         'Copy <strong>Prompt 1</strong> below and paste it into the message box.',
         'Replace the placeholder line with your own idea or outline, or attach a file using the attachment icon.',
-        'Send it, answer Copilot\'s quick questions about audience, length, and tone, then review the ' + dm.outline + ' it gives you.'
+        'Send it, answer Copilot\'s quick questions about audience, length, and tone, then review the ' + dm.outline + ' it gives you.',
+        copilotFileFallback(deliverable)
       ];
       if(task === "improve") return [
         'Go to <strong>copilot.microsoft.com</strong> (or open Copilot in Word) and sign in.',
@@ -1089,9 +1098,14 @@
       ];
       return [
         'Go to <strong>copilot.microsoft.com</strong> and sign in.',
-        'Save the system prompt below somewhere handy &mdash; a pinned note or a Word doc &mdash; since standard Copilot doesn\'t yet offer a simple way for individual accounts to save a persistent custom agent.',
-        'Each time you want to convert a document, start a new chat, paste the system prompt in as your first message, then attach your file.',
-        'If your institution has <strong>Copilot Studio</strong> access, your IT or ed-tech team can turn this same system prompt into a true reusable agent.'
+        'Click <strong>"New agent."</strong>',
+        'Name it (e.g., "' + nd.name + '") and write a description &mdash; Copilot requires this &mdash; such as: <em>"' + nd.description + '"</em>.',
+        'Paste the full system prompt below into the <strong>"Instructions"</strong> field.',
+        'You\'ll also see a <strong>"Knowledge"</strong> section &mdash; this is where you could optionally upload reference files for the agent to pull from. You can leave it empty for now and add files anytime later.',
+        'Under <strong>"Suggested prompts,"</strong> add the suggestions below &mdash; these appear as quick-click buttons before anyone types.',
+        'Save your agent.',
+        'Anytime you want to convert a document, open this agent and paste one of the usage prompts below (or write your own), then attach your file.',
+        copilotFileFallback(deliverable)
       ];
     }
     return [];
@@ -1133,6 +1147,18 @@
     return "For the slide deck:\n" + slideFmt + "\n\nFor the document:\n" + docFmt;
   }
 
+  // The name of the actual file format(s) this deliverable should end up as —
+  // used to tell the AI explicitly not to stop at a text outline.
+  function fileWord(deliverable){
+    if(deliverable === "document") return "Word";
+    if(deliverable === "slides") return "PowerPoint";
+    return "PowerPoint and Word";
+  }
+
+  function fileDeliverableNote(deliverable){
+    return "Once the structure above is confirmed, generate the actual file — a real " + fileWord(deliverable) + " file, not just a text outline. Use the bullets as genuine slide content and put speaker notes in the slide's notes field (not printed on the slide itself), then provide it as a file I can download. If you're not able to generate a downloadable file directly, say so plainly, then give me the same content as a text outline instead so I can copy it in by hand.";
+  }
+
   function generatePromptText(deliverable, b){
     var dm = DELIVERABLE_META[deliverable];
     return "I have an idea or rough outline that I'd like you to turn into a well-designed " + dm.outline + ".\n\n" +
@@ -1140,6 +1166,7 @@
       "Before you begin, ask me:\n1. Who is the audience?\n2. How many slides or sections should this target?\n3. What tone should it use?\n\n" +
       "Once I answer, briefly summarize the structure you're planning so I can confirm it, then generate the full outline.\n\n" +
       formatBlock(deliverable) + "\n\n" +
+      fileDeliverableNote(deliverable) + "\n\n" +
       "Here is my idea or outline:\n[PASTE YOUR IDEA OR OUTLINE HERE]";
   }
 
@@ -1148,7 +1175,7 @@
     return "I've attached a " + dm.label + " I already created. Please review it and suggest specific design improvements — don't rewrite the content unless I ask.\n\n" +
       "Evaluate it against these brand guidelines:\n" + brandBlock(b) + "\n\n" +
       "Please give me:\n1. What's already working well.\n2. A numbered list of specific changes to improve visual hierarchy, color use, typography, and spacing — with a brief reason for each.\n3. Anything that looks inconsistent from one slide or section to the next.\n\n" +
-      "Keep your suggestions concrete enough that I could hand them to a designer, or apply them myself.";
+      "If you're able to edit the uploaded file directly, please do so and give me back an updated, downloadable file. Otherwise, keep your suggestions concrete enough that I could hand them to a designer, or apply them myself.";
   }
 
   function agentPromptText(deliverable, b){
@@ -1173,13 +1200,60 @@
       "BEFORE YOU BEGIN\nAsk the following questions if they have not already been answered:\n1. Who is the intended audience?\n2. How many slides or sections should the output target?\n3. What tone should the presentation or document use?\n\n" +
       "Once answered, identify the natural structure of the document and summarize it briefly before generating the full output, so it can be confirmed before proceeding.\n\n" +
       outputSections +
+      "OUTPUT DELIVERABLE\n" + fileDeliverableNote(deliverable) + "\n\n" +
       "RULES\nDo not fabricate information not in the source document.\nIf a section is ambiguous, note it rather than guessing.\nKeep language plain and avoid repeating the same content across sections.\nApply the brand guidelines to all design recommendations and notes.";
   }
 
-  function buildPrompts(deliverable, task, b){
+  // Suggested Name + Description for the agent/project/GPT -- shown as
+  // plain-language suggestions inline in the steps (short enough that a
+  // dedicated copy button would be overkill).
+  function agentNameAndDescription(deliverable){
+    var names = { slides: "Slide Deck Design Assistant", document: "Document Design Assistant", both: "Course Design Assistant" };
+    var dm = DELIVERABLE_META[deliverable];
+    return {
+      name: names[deliverable],
+      description: "Turns any document into a branded, well-designed " + dm.outline + " that follows our visual style."
+    };
+  }
+
+  // Short quick-click starter phrases for ChatGPT's "Conversation starters"
+  // and Copilot's "Suggested prompts" builder fields.
+  function starterPrompts(deliverable){
+    if(deliverable === "document") return ["Turn this document into a document outline", "Here's my rough outline — build it into a document outline"];
+    if(deliverable === "both") return ["Turn this document into a slide deck outline", "Turn this document into a document outline"];
+    return ["Turn this document into a slide deck outline", "Here's my rough outline — build it into a slide deck"];
+  }
+
+  // Full messages to send once the agent/project/GPT is actually built and
+  // ready to use, day-to-day, for the rest of the semester.
+  function usagePrompts(deliverable){
+    var dm = DELIVERABLE_META[deliverable];
+    var lengthUnit = deliverable === "document" ? "sections" : (deliverable === "both" ? "slides/sections" : "slides");
+    return [
+      { title: "Usage Prompt · Quick Version", text: "Please convert the attached document into a " + dm.outline + " using our brand style." },
+      { title: "Usage Prompt · Fill In The Details", text: "Please convert the attached document into a " + dm.outline + ".\n\nAudience: [fill in]\nTarget length: [fill in] " + lengthUnit + "\nTone: [fill in]" }
+    ];
+  }
+
+  // Copilot's standalone agent builder is the least reliable of the three for
+  // producing an actual downloadable file -- point to Copilot inside
+  // PowerPoint/Word itself as the dependable fallback.
+  function copilotFileFallback(deliverable){
+    if(deliverable === "document") return 'If you get a text outline instead of an actual downloadable Word file, paste the confirmed outline into Copilot inside Word itself (Home tab → Copilot), which is built to generate a real document.';
+    if(deliverable === "slides") return 'If you get a text outline instead of an actual downloadable PowerPoint file, paste the confirmed outline into Copilot inside PowerPoint itself (Home tab → Copilot → "Create presentation from text"), which is built to generate real slides.';
+    return 'If you get a text outline instead of actual downloadable files, paste the confirmed slide outline into Copilot inside PowerPoint (Home tab → Copilot → "Create presentation from text"), and the confirmed section outline into Copilot inside Word (Home tab → Copilot).';
+  }
+
+  function buildPrompts(deliverable, task, b, tools){
     if(task === "generate") return [{title:"Prompt 1 · Generate Your " + capitalize(DELIVERABLE_META[deliverable].outline), text: generatePromptText(deliverable, b)}];
     if(task === "improve") return [{title:"Prompt 1 · Improve Your Design", text: improvePromptText(deliverable, b)}];
-    return [{title:"Your Reusable Agent System Prompt", text: agentPromptText(deliverable, b)}];
+
+    var prompts = [{title:"Your Reusable Agent System Prompt", text: agentPromptText(deliverable, b)}];
+    var starters = starterPrompts(deliverable).join("\n");
+    if(tools.indexOf("chatgpt") > -1) prompts.push({title:"Conversation Starters (for ChatGPT)", text: starters});
+    if(tools.indexOf("copilot") > -1) prompts.push({title:"Suggested Prompts (for Copilot)", text: starters});
+    usagePrompts(deliverable).forEach(function(p){ prompts.push(p); });
+    return prompts;
   }
 
   function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
