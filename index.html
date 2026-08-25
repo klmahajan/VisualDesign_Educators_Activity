@@ -210,6 +210,11 @@
     color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13.5px;
     font-weight: 600; display:flex; gap:8px; align-items:flex-start;
   }
+  .info-box{
+    margin-top: 14px; background: var(--primary-soft); border: 1px solid var(--border);
+    color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13.5px;
+    line-height: 1.5;
+  }
 
   /* Nav buttons */
   .step-nav{ display:flex; justify-content:space-between; align-items:center; margin-top: 30px; }
@@ -312,6 +317,37 @@
 
   .final-actions{ display:flex; justify-content:space-between; margin-top: 36px; }
   footer{ text-align:center; color: var(--text-muted); font-size:12.5px; margin-top: 50px; }
+
+  .download-row{ display:flex; justify-content:flex-end; margin: -4px 0 4px; }
+  .btn-download{ background: var(--secondary); color:#fff; }
+  .btn-download:hover{ opacity:0.9; }
+  .print-header{ display:none; }
+
+  @media print{
+    /* Force light, readable colors regardless of on-screen dark mode --
+       dark-mode text is near-white and would be invisible on a forced
+       white printed/PDF background otherwise. */
+    body, .card, .tool-block, .prompt-card, .chip, .step-title, .step-sub,
+    .section-sub, .opt-desc, li, pre, h1, h2, h3, p, span{
+      color: #1B2140 !important;
+    }
+    body{ min-width: 0; background:#fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .wrap{ max-width: 100%; padding: 0 12px; }
+    button, .theme-toggle, .howto, .progress, .step-nav, .final-actions, .download-row, footer{ display:none !important; }
+    .output-header{ display:block; }
+    .brand p{ color:#5B6485 !important; }
+    .card{ box-shadow:none; border:none; padding: 0; background:#fff !important; }
+    .tool-block, .prompt-card{ box-shadow:none; break-inside: avoid; background:#fff !important; border:1px solid #DCE2F2 !important; }
+    .prompt-card-head{ background:#F0F3FB !important; }
+    .chip{ background:#F0F3FB !important; border:1px solid #DCE2F2 !important; }
+    .section-heading{ color:#0D9488 !important; }
+    .step-eyebrow{ color:#0D9488 !important; }
+    .prompt-card pre{ max-height:none; overflow: visible; }
+    .print-header{
+      display:block; font-size: 12px; color:#5B6485 !important; margin-bottom: 10px;
+      border-bottom: 1px solid #DCE2F2; padding-bottom: 8px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -626,7 +662,7 @@
         '<span class="opt-desc">' + o.d + '</span></button>';
     });
     html += '</div>';
-    html += '<p class="note">Canva works as an add-on with Claude or ChatGPT. Select one of those as well.</p>';
+    html += '<div class="info-box">💡&nbsp; <strong>Good to know:</strong> Claude, ChatGPT, and Copilot can all create Word documents, PowerPoint slides, and more on their own &mdash; no connector required. The Canva connector is only needed if you specifically want your design built inside Canva itself. Canva works as an add-on with Claude or ChatGPT, so select one of those as well.</div>';
     var canva = state.tools.indexOf("canva") > -1;
     var hasHost = state.tools.indexOf("claude") > -1 || state.tools.indexOf("chatgpt") > -1;
     if(canva && !hasHost){
@@ -811,6 +847,7 @@
     var pasteToolNames = tools.filter(function(t){ return t !== "canva"; }).map(function(t){ return TOOL_META[t].name; });
 
     var html = '<div class="card">';
+    html += '<div class="print-header">Better by Design &middot; Your Personalized Plan &middot; ' + new Date().toLocaleDateString() + '</div>';
     html += '<div class="output-header"><div>' +
       '<p class="step-eyebrow">Your Results</p>' +
       '<h2 class="step-title">Your Personalized Plan</h2>' +
@@ -822,6 +859,8 @@
       toolNames.map(function(n){ return '<span class="chip">' + n + '</span>'; }).join('') +
       '<span class="chip">' + ({generate:"Generate from outline", improve:"Improve existing design", agent:"Build a reusable agent"})[task] + '</span>' +
     '</div>';
+
+    html += '<div class="download-row"><button class="btn btn-download btn-sm" onclick="App.downloadPdf()">⬇ Download as PDF</button></div>';
 
     html += '<h3 class="section-heading">Part 1 &middot; Your Step-by-Step Directions</h3>';
     html += '<p class="section-sub">Plain-language steps for each tool you selected.</p>';
@@ -867,6 +906,13 @@
 
   function copyPrompt(idx, btn){
     copyToClipboard(window.PROMPTS[idx].text, btn);
+  }
+
+  function downloadPdf(){
+    // No backend and no bundled PDF library — the browser's own print-to-PDF
+    // does the job with zero dependencies. The print stylesheet above hides
+    // all navigation/chrome and expands the prompt boxes so everything fits.
+    window.print();
   }
 
   /* ---------------------------------------------------------------------
@@ -1041,7 +1087,7 @@
     goTo: goTo, startOver: startOver, toggleTheme: toggleTheme,
     selectDeliverable: selectDeliverable, toggleTool: toggleTool, selectTask: selectTask,
     useDefaults: useDefaults, openCustomize: openCustomize, finishCustomize: finishCustomize,
-    copyPrompt: copyPrompt
+    copyPrompt: copyPrompt, downloadPdf: downloadPdf
   };
 
   render();
