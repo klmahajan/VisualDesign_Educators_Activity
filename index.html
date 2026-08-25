@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Better by Design: Visual Communication for the Modern Educator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #F5F7FC;
+    --surface: #FFFFFF;
+    --surface-alt: #F0F3FB;
+    --border: #DCE2F2;
+    --text: #1B2140;
+    --text-muted: #5B6485;
+    --primary: #2358CF;
+    --primary-dark: #17409A;
+    --primary-soft: #E7EDFC;
+    --secondary: #0D9488;
+    --secondary-soft: #E1F5F2;
+    --focal: #F97316;
+    --focal-soft: #FEEADA;
+    --good: #0D9488;
+    --bad: #D6432B;
+    --ok: #B4740E;
+    --radius-lg: 18px;
+    --radius-md: 12px;
+    --radius-sm: 8px;
+    --shadow: 0 4px 16px rgba(27,33,64,0.06), 0 1px 3px rgba(27,33,64,0.06);
+    --shadow-lift: 0 10px 30px rgba(27,33,64,0.10), 0 2px 6px rgba(27,33,64,0.08);
+    --font-body: 'Montserrat', system-ui, sans-serif;
+  }
+  :root[data-theme="dark"]{
+    --bg: #10162B;
+    --surface: #1A2242;
+    --surface-alt: #202A4E;
+    --border: #313D66;
+    --text: #EDEFF9;
+    --text-muted: #A8B0D6;
+    --primary: #6E97F5;
+    --primary-dark: #4472E0;
+    --primary-soft: #22305E;
+    --secondary: #2DD4BF;
+    --secondary-soft: #163732;
+    --focal: #FB923C;
+    --focal-soft: #3A2718;
+    --good: #2DD4BF;
+    --bad: #F4796A;
+    --ok: #F2C078;
+    --shadow: 0 4px 16px rgba(0,0,0,0.28), 0 1px 3px rgba(0,0,0,0.24);
+    --shadow-lift: 0 10px 30px rgba(0,0,0,0.38), 0 2px 6px rgba(0,0,0,0.28);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-width: 1280px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 28px 32px 80px;
+  }
+  a{color: var(--primary);}
+
+  /* Header */
+  .topbar{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap: 24px;
+    margin-bottom: 28px;
+  }
+  .brand h1{
+    font-size: 26px;
+    font-weight: 800;
+    margin: 0 0 4px;
+    color: var(--primary);
+    letter-spacing: -0.01em;
+  }
+  .brand p{
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 14.5px;
+    font-weight: 500;
+    max-width: 640px;
+  }
+  .theme-toggle{
+    flex-shrink: 0;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 9px 16px;
+    border-radius: 999px;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    cursor:pointer;
+    box-shadow: var(--shadow);
+  }
+  .theme-toggle:hover{ border-color: var(--primary); }
+
+  /* Instructions banner */
+  .howto{
+    background: var(--primary-soft);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 18px 22px;
+    margin-bottom: 26px;
+  }
+  .howto h2{
+    margin:0 0 8px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--primary);
+    font-weight: 800;
+  }
+  .howto ol{
+    margin: 0;
+    padding-left: 20px;
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 28px;
+  }
+  .howto li{ font-size: 14px; color: var(--text); padding: 3px 0; }
+  .howto.compact{ display:flex; align-items:center; justify-content:space-between; gap:16px; padding: 12px 20px;}
+  .howto.compact p{ margin:0; font-size: 13.5px; color: var(--text-muted); }
+  .howto.compact button{
+    background: none; border: none; color: var(--primary); font-family: inherit;
+    font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+
+  /* Progress */
+  .progress{ margin-bottom: 30px; }
+  .progress-label{
+    font-size: 13px; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;
+  }
+  .progress-track{ display:flex; gap: 8px; }
+  .progress-seg{
+    flex:1; height: 7px; border-radius: 999px; background: var(--border);
+    position: relative; overflow: hidden;
+  }
+  .progress-seg.done, .progress-seg.active{ background: var(--primary); }
+  .progress-steps{
+    display:flex; justify-content:space-between; margin-top: 8px;
+  }
+  .progress-steps span{ font-size: 12px; color: var(--text-muted); font-weight: 600; }
+  .progress-steps span.current{ color: var(--primary); }
+
+  /* Card / step shell */
+  .card{
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 32px 36px;
+    box-shadow: var(--shadow);
+  }
+  .step-eyebrow{
+    font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--secondary); margin: 0 0 6px;
+  }
+  .step-title{ font-size: 22px; font-weight: 800; margin: 0 0 6px; }
+  .step-sub{ font-size: 14.5px; color: var(--text-muted); margin: 0 0 24px; max-width: 680px; }
+
+  /* Option grids */
+  .option-grid{ display:grid; gap: 14px; margin-bottom: 8px; }
+  .option-grid.cols-3{ grid-template-columns: repeat(3, 1fr); }
+  .option-grid.cols-4{ grid-template-columns: repeat(4, 1fr); }
+  .option{
+    border: 2px solid var(--border);
+    background: var(--surface-alt);
+    border-radius: var(--radius-md);
+    padding: 18px 18px;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    color: var(--text);
+    transition: border-color .12s ease, transform .05s ease;
+    display:flex; flex-direction:column; gap: 6px;
+  }
+  .option:hover{ border-color: var(--primary); }
+  .option.selected{
+    border-color: var(--primary);
+    background: var(--primary-soft);
+  }
+  .option .opt-title{ font-weight: 700; font-size: 15.5px; display:flex; align-items:center; gap:8px;}
+  .option .opt-desc{ font-size: 13px; color: var(--text-muted); line-height:1.4; }
+  .option .check{
+    width: 20px; height: 20px; border-radius: 6px; border: 2px solid var(--border);
+    flex-shrink:0; display:inline-flex; align-items:center; justify-content:center;
+    font-size: 13px; color: #fff; background: var(--surface);
+  }
+  .option.selected .check{ background: var(--primary); border-color: var(--primary); }
+  .option-grid.cols-3 .option .check{ border-radius: 999px; }
+
+  .note{ font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+  .warning{
+    margin-top: 14px; background: var(--focal-soft); border: 1px solid var(--focal);
+    color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13.5px;
+    font-weight: 600; display:flex; gap:8px; align-items:flex-start;
+  }
+
+  /* Nav buttons */
+  .step-nav{ display:flex; justify-content:space-between; align-items:center; margin-top: 30px; }
+  .btn{
+    font-family: inherit; font-weight: 700; font-size: 14.5px; border-radius: 999px;
+    padding: 12px 24px; cursor: pointer; border: 2px solid transparent; transition: opacity .12s ease, transform .05s ease;
+  }
+  .btn:active{ transform: scale(0.98); }
+  .btn-primary{ background: var(--primary); color: #fff; }
+  .btn-primary:hover{ background: var(--primary-dark); }
+  .btn-primary:disabled{ opacity: 0.4; cursor:not-allowed; }
+  .btn-ghost{ background: transparent; color: var(--text); border-color: var(--border); }
+  .btn-ghost:hover{ border-color: var(--primary); color: var(--primary); }
+  .btn-focal{ background: var(--focal); color: #fff; }
+  .btn-focal:hover{ opacity: 0.9; }
+  .btn-link{ background:none; border:none; color: var(--primary); font-weight:700; font-family:inherit; cursor:pointer; font-size: 14px; padding: 6px 0;}
+  .btn-sm{ padding: 8px 14px; font-size: 13px; }
+
+  /* Step 4 defaults panel */
+  .defaults-panel{
+    border: 2px solid var(--primary); background: var(--primary-soft);
+    border-radius: var(--radius-md); padding: 22px 24px; display:flex; align-items:center;
+    justify-content: space-between; gap: 20px; margin-bottom: 18px;
+  }
+  .defaults-panel .txt strong{ display:block; font-size: 15.5px; margin-bottom: 3px; }
+  .defaults-panel .txt span{ font-size: 13px; color: var(--text-muted); }
+  .or-divider{ display:flex; align-items:center; gap:14px; margin: 20px 0; color: var(--text-muted); font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em;}
+  .or-divider::before, .or-divider::after{ content:""; flex:1; height:1px; background: var(--border); }
+
+  .custom-form{ display:none; }
+  .custom-form.open{ display:block; }
+  .form-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 18px 24px; margin-bottom: 22px; }
+  .field label{ display:block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+  .field input[type="text"], .field select{
+    width: 100%; font-family: inherit; font-size: 14px; padding: 10px 12px;
+    border-radius: var(--radius-sm); border: 1.5px solid var(--border); background: var(--surface);
+    color: var(--text);
+  }
+  .field input[type="text"]:focus, .field select:focus{ outline: 2px solid var(--primary); outline-offset: 1px; }
+  .color-field{ display:flex; align-items:center; gap: 8px; }
+  .color-field input[type="color"]{
+    width: 42px; height: 40px; padding: 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    cursor:pointer; background:none;
+  }
+  .color-field input[type="text"]{ flex:1; }
+
+  /* Live preview */
+  .preview-wrap{ margin-top: 8px; }
+  .preview-label{ font-size: 13px; font-weight: 800; text-transform:uppercase; letter-spacing:.05em; color: var(--text-muted); margin-bottom: 10px;}
+  .preview-card{
+    border-radius: var(--radius-lg); padding: 26px 28px; border: 1px solid var(--border);
+    box-shadow: var(--shadow); display:flex; flex-direction:column; gap:10px;
+  }
+  .preview-title{ font-size: 22px; font-weight: 800; margin:0; }
+  .preview-body{ font-size: 14px; margin:0; max-width: 520px; }
+  .preview-row{ display:flex; align-items:center; gap:14px; margin-top: 6px; flex-wrap:wrap; }
+  .preview-btn{ padding: 10px 20px; border-radius: 999px; font-weight:700; font-size: 13.5px; border:none; display:inline-block;}
+  .preview-tag{ padding: 5px 12px; border-radius: 999px; font-weight:700; font-size: 12px; }
+  .preview-graphic{ width: 34px; height: 34px; display:flex; align-items:center; justify-content:center; }
+  .badges{ display:flex; gap: 8px; margin-top: 12px; flex-wrap:wrap; }
+  .badge{ font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; }
+  .badge.good{ background: rgba(13,148,136,0.15); color: var(--good); }
+  .badge.ok{ background: rgba(180,116,14,0.15); color: var(--ok); }
+  .badge.bad{ background: rgba(214,67,43,0.15); color: var(--bad); }
+
+  /* Output screen */
+  .output-header{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom: 8px; gap: 20px;}
+  .chip-row{ display:flex; gap:8px; flex-wrap:wrap; margin: 14px 0 0; }
+  .chip{ background: var(--surface-alt); border:1px solid var(--border); border-radius:999px; padding:6px 14px; font-size:12.5px; font-weight:700; color: var(--text-muted); }
+  .section-heading{ font-size: 13px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color: var(--secondary); margin: 36px 0 4px; }
+  .section-heading:first-of-type{ margin-top: 30px; }
+  .section-sub{ font-size: 14px; color: var(--text-muted); margin: 0 0 18px; }
+  .tool-block{
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-md);
+    padding: 20px 24px; margin-bottom: 16px; box-shadow: var(--shadow);
+  }
+  .tool-block h3{ margin: 0 0 12px; font-size: 16px; display:flex; align-items:center; gap:8px; }
+  .tool-block ol{ margin: 0; padding-left: 20px; }
+  .tool-block li{ font-size: 14px; margin-bottom: 8px; line-height: 1.55; }
+  .tool-block li:last-child{ margin-bottom: 0; }
+  .prompt-card{
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius-md);
+    margin-bottom: 18px; overflow:hidden; box-shadow: var(--shadow);
+  }
+  .prompt-card-head{
+    display:flex; justify-content:space-between; align-items:center; padding: 14px 20px;
+    background: var(--surface-alt); border-bottom: 1px solid var(--border);
+  }
+  .prompt-card-head h3{ margin:0; font-size: 14.5px; }
+  .prompt-card pre{
+    margin:0; padding: 20px; font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
+    font-size: 12.8px; white-space: pre-wrap; word-wrap: break-word; color: var(--text);
+    max-height: 360px; overflow-y: auto; line-height:1.6;
+  }
+  .copy-btn{
+    background: var(--primary); color:#fff; border:none; border-radius: 999px; padding: 8px 18px;
+    font-family: inherit; font-weight:700; font-size: 12.8px; cursor:pointer; flex-shrink:0;
+  }
+  .copy-btn.copied{ background: var(--good); }
+
+  .final-actions{ display:flex; justify-content:space-between; margin-top: 36px; }
+  footer{ text-align:center; color: var(--text-muted); font-size:12.5px; margin-top: 50px; }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function(){
+
+  /* ---------------------------------------------------------------------
+     STATE
+  --------------------------------------------------------------------- */
+  var DEFAULT_BRANDING = {
+    titleFont: "Montserrat (if available), Arial",
+    bodyFont: "Montserrat (if available), Arial",
+    primaryColor: "#2358CF",
+    secondaryColor: "#0D9488",
+    neutralColor: "#F8F9FF",
+    focalColor: "#F97316",
+    graphicStyle: "arrows"
+  };
+
+  var state = {
+    screen: "welcome",       // welcome | 1 | 2 | 3 | 4 | output
+    deliverable: null,       // slides | document | both
+    tools: [],               // subset of claude, chatgpt, copilot, canva
+    task: null,              // generate | improve | agent
+    customizing: false,
+    branding: Object.assign({}, DEFAULT_BRANDING),
+    theme: "light"
+  };
+
+  var STEP_LABELS = ["What to make", "AI tool(s)", "Your goal", "Branding"];
+
+  var GRAPHIC_LABELS = {
+    line: "Simple line icons",
+    geometric: "Filled geometric shapes",
+    arrows: "Minimal arrows and dividers",
+    none: "No graphics, text only",
+    unsure: "I am not sure yet"
+  };
+
+  var DELIVERABLE_META = {
+    slides:   { label: "slide deck", outline: "slide deck outline", agentToken: "SLIDE DECK OUTLINE" },
+    document: { label: "document or assignment brief", outline: "document outline", agentToken: "DOCUMENT OUTLINE" },
+    both:     { label: "slide deck and document", outline: "slide deck outline and document outline", agentToken: "SLIDE DECK AND DOCUMENT OUTLINE" }
+  };
+
+  var TOOL_META = {
+    claude:  { name: "Claude" },
+    chatgpt: { name: "ChatGPT" },
+    copilot: { name: "Microsoft Copilot" },
+    canva:   { name: "Canva" }
+  };
+
+  var app = document.getElementById("app");
+
+  /* ---------------------------------------------------------------------
+     HELPERS
+  --------------------------------------------------------------------- */
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, function(c){
+      return ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c];
+    });
+  }
+
+  function normalizeHex(v){
+    v = (v || "").trim();
+    if(v[0] !== "#") v = "#" + v;
+    return v;
+  }
+
+  function isValidHex(v){
+    return /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(v);
+  }
+
+  function hexToRgb(hex){
+    var h = hex.replace("#","");
+    if(h.length === 3){ h = h.split("").map(function(c){return c+c;}).join(""); }
+    var num = parseInt(h,16);
+    return { r:(num>>16)&255, g:(num>>8)&255, b:num&255 };
+  }
+
+  function luminance(hex){
+    var rgb = hexToRgb(hex);
+    var a = [rgb.r, rgb.g, rgb.b].map(function(v){
+      v /= 255;
+      return v <= 0.03928 ? v/12.92 : Math.pow((v+0.055)/1.055, 2.4);
+    });
+    return 0.2126*a[0] + 0.7152*a[1] + 0.0722*a[2];
+  }
+
+  function contrastRatio(hex1, hex2){
+    var l1 = luminance(hex1) + 0.05;
+    var l2 = luminance(hex2) + 0.05;
+    return l1 > l2 ? l1/l2 : l2/l1;
+  }
+
+  function bestTextColor(bgHex){
+    return contrastRatio(bgHex, "#ffffff") >= contrastRatio(bgHex, "#111111") ? "#ffffff" : "#111111";
+  }
+
+  function contrastBadge(ratio){
+    if(ratio >= 4.5) return {text:"Accessible contrast ✓", cls:"good"};
+    if(ratio >= 3) return {text:"OK for large text only ⚠", cls:"ok"};
+    return {text:"Low contrast ✕ try adjusting", cls:"bad"};
+  }
+
+  function parseFontCss(fontString){
+    var first = (fontString || "").split("(")[0].trim().split(",")[0].trim();
+    if(!first) first = "Montserrat";
+    if(first.indexOf(" ") > -1) first = '"' + first + '"';
+    return first + ", Arial, sans-serif";
+  }
+
+  function fmtList(arr){
+    if(arr.length === 1) return arr[0];
+    if(arr.length === 2) return arr[0] + " and " + arr[1];
+    return arr.slice(0,-1).join(", ") + ", and " + arr[arr.length-1];
+  }
+
+  function copyToClipboard(text, btn){
+    function ok(){
+      var original = btn.textContent;
+      btn.textContent = "Copied ✓";
+      btn.classList.add("copied");
+      setTimeout(function(){ btn.textContent = original; btn.classList.remove("copied"); }, 1600);
+    }
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(ok).catch(function(){ fallbackCopy(text, ok); });
+    } else {
+      fallbackCopy(text, ok);
+    }
+  }
+
+  function fallbackCopy(text, ok){
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.left = "-9999px";
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try{ document.execCommand("copy"); ok(); }catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  window.PROMPTS = []; // populated on output render, referenced by copy buttons
+
+  /* ---------------------------------------------------------------------
+     NAVIGATION
+  --------------------------------------------------------------------- */
+  function goTo(screen){ state.screen = screen; window.scrollTo(0,0); render(); }
+  function startOver(){
+    state.screen = "welcome";
+    state.deliverable = null;
+    state.tools = [];
+    state.task = null;
+    state.customizing = false;
+    state.branding = Object.assign({}, DEFAULT_BRANDING);
+    window.scrollTo(0,0);
+    render();
+  }
+  function toggleTheme(){
+    state.theme = state.theme === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", state.theme);
+    render();
+  }
+
+  function selectDeliverable(v){ state.deliverable = v; render(); }
+  function toggleTool(v){
+    var i = state.tools.indexOf(v);
+    if(i > -1) state.tools.splice(i,1); else state.tools.push(v);
+    render();
+  }
+  function selectTask(v){ state.task = v; render(); }
+  function useDefaults(){
+    state.branding = Object.assign({}, DEFAULT_BRANDING);
+    state.customizing = false;
+    goTo("output");
+  }
+  function openCustomize(){ state.customizing = true; render(); }
+
+  /* ---------------------------------------------------------------------
+     RENDER: SHELL
+  --------------------------------------------------------------------- */
+  function render(){
+    var html = "";
+    html += renderTopbar();
+    if(state.screen === "welcome"){
+      html += renderWelcome();
+    } else if(state.screen === "output"){
+      html += renderOutput();
+    } else {
+      html += renderHowtoCompact();
+      html += renderProgress();
+      if(state.screen === 1) html += renderStep1();
+      else if(state.screen === 2) html += renderStep2();
+      else if(state.screen === 3) html += renderStep3();
+      else if(state.screen === 4) html += renderStep4();
+    }
+    html += renderFooter();
+    app.innerHTML = html;
+
+    if(state.screen === 4 && state.customizing){
+      wireStep4Inputs();
+      updatePreview();
+    }
+
+    if(state.screen === "output" && window.PROMPTS && window.PROMPTS.length){
+      // Fill prompt text via textContent (never innerHTML) so branding text
+      // a user typed is never interpreted as HTML.
+      window.PROMPTS.forEach(function(p, idx){
+        var node = document.getElementById("promptText" + idx);
+        if(node) node.textContent = p.text;
+      });
+    }
+  }
+
+  function renderTopbar(){
+    return '' +
+      '<div class="topbar">' +
+        '<div class="brand">' +
+          '<h1>Better by Design</h1>' +
+          '<p>Visual Communication for the Modern Educator &mdash; a quick workshop tool that turns your choices into ready-to-use AI directions.</p>' +
+        '</div>' +
+        '<button class="theme-toggle" onclick="App.toggleTheme()">' + (state.theme === "light" ? "🌙 Dark mode" : "☀️ Light mode") + '</button>' +
+      '</div>';
+  }
+
+  function renderFooter(){
+    return '<footer>Nothing you enter here is saved or sent anywhere &mdash; everything stays in this browser tab for today\'s session.</footer>';
+  }
+
+  function renderWelcome(){
+    return '' +
+      '<div class="card">' +
+        '<p class="step-eyebrow">Before you start</p>' +
+        '<h2 class="step-title">How this works</h2>' +
+        '<p class="step-sub">Four quick steps, about two minutes. There are no wrong answers &mdash; you can always come back and change something.</p>' +
+        '<ol style="padding-left:20px; margin:0 0 26px;">' +
+          '<li style="margin-bottom:10px;"><strong>Answer four short questions</strong> about what you want to create, which AI tool(s) you\'ll use, what you want the AI to do, and how you want it branded.</li>' +
+          '<li style="margin-bottom:10px;"><strong>We put it together for you.</strong> You\'ll get plain-language, numbered directions for your specific tool and goal.</li>' +
+          '<li style="margin-bottom:10px;"><strong>You\'ll also get ready-to-paste prompts</strong> &mdash; already filled in with your branding choices &mdash; so you can try it during today\'s session.</li>' +
+          '<li><strong>Use the "Back" button any time</strong> to change an earlier answer, and "Start Over" on the results screen to begin again.</li>' +
+        '</ol>' +
+        '<div class="step-nav" style="justify-content:flex-end;">' +
+          '<button class="btn btn-primary" onclick="App.goTo(1)">Get Started →</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function renderHowtoCompact(){
+    return '' +
+      '<div class="howto compact">' +
+        '<p>A quick reminder: pick what feels right, you can always go back and change it.</p>' +
+      '</div>';
+  }
+
+  function renderProgress(){
+    var segs = "";
+    var labels = "";
+    for(var i=1;i<=4;i++){
+      var cls = i < state.screen ? "done" : (i === state.screen ? "active" : "");
+      segs += '<div class="progress-seg ' + cls + '"></div>';
+      labels += '<span class="' + (i===state.screen?"current":"") + '">' + STEP_LABELS[i-1] + '</span>';
+    }
+    return '' +
+      '<div class="progress">' +
+        '<div class="progress-label">Step ' + state.screen + ' of 4</div>' +
+        '<div class="progress-track">' + segs + '</div>' +
+        '<div class="progress-steps">' + labels + '</div>' +
+      '</div>';
+  }
+
+  /* ---------------------------------------------------------------------
+     STEP 1
+  --------------------------------------------------------------------- */
+  function renderStep1(){
+    var opts = [
+      {v:"slides", t:"Slide Deck", d:"A presentation you'll click through &mdash; lecture, workshop, or student-facing deck."},
+      {v:"document", t:"Document or Assignment Brief", d:"A handout, syllabus section, assignment sheet, or written brief."},
+      {v:"both", t:"Both", d:"You want a slide deck and a companion document from the same material."}
+    ];
+    var html = '<div class="card"><p class="step-eyebrow">Step 1</p><h2 class="step-title">What do you want to create?</h2><p class="step-sub">Pick one.</p>';
+    html += '<div class="option-grid cols-3">';
+    opts.forEach(function(o){
+      var sel = state.deliverable === o.v;
+      html += '<button class="option' + (sel?" selected":"") + '" onclick="App.selectDeliverable(\'' + o.v + '\')">' +
+        '<span class="opt-title"><span class="check">' + (sel?"✓":"") + '</span>' + o.t + '</span>' +
+        '<span class="opt-desc">' + o.d + '</span></button>';
+    });
+    html += '</div>';
+    html += renderNav(false, state.deliverable !== null, function(){});
+    return html;
+  }
+
+  /* ---------------------------------------------------------------------
+     STEP 2
+  --------------------------------------------------------------------- */
+  function renderStep2(){
+    var opts = [
+      {v:"claude", t:"Claude", d:"Anthropic's AI assistant."},
+      {v:"chatgpt", t:"ChatGPT", d:"OpenAI's AI assistant."},
+      {v:"copilot", t:"Microsoft Copilot", d:"Built into Microsoft 365 and the web."},
+      {v:"canva", t:"Canva", d:"Via connector with Claude or ChatGPT."}
+    ];
+    var html = '<div class="card"><p class="step-eyebrow">Step 2</p><h2 class="step-title">What AI tool will you be using?</h2><p class="step-sub">Select all that apply.</p>';
+    html += '<div class="option-grid cols-4">';
+    opts.forEach(function(o){
+      var sel = state.tools.indexOf(o.v) > -1;
+      html += '<button class="option' + (sel?" selected":"") + '" onclick="App.toggleTool(\'' + o.v + '\')">' +
+        '<span class="opt-title"><span class="check">' + (sel?"✓":"") + '</span>' + o.t + '</span>' +
+        '<span class="opt-desc">' + o.d + '</span></button>';
+    });
+    html += '</div>';
+    html += '<p class="note">Canva works as an add-on with Claude or ChatGPT. Select one of those as well.</p>';
+    var canva = state.tools.indexOf("canva") > -1;
+    var hasHost = state.tools.indexOf("claude") > -1 || state.tools.indexOf("chatgpt") > -1;
+    if(canva && !hasHost){
+      html += '<div class="warning">⚠️&nbsp; Please also select Claude or ChatGPT to use the Canva connector.</div>';
+    }
+    html += renderNav(true, state.tools.length > 0, function(){});
+    return html;
+  }
+
+  /* ---------------------------------------------------------------------
+     STEP 3
+  --------------------------------------------------------------------- */
+  function renderStep3(){
+    var opts = [
+      {v:"generate", t:"Generate from a prompt or outline", d:"I have an idea or rough outline and want AI to build it out."},
+      {v:"improve", t:"Improve an existing design", d:"I have something already and want AI to suggest or apply design improvements."},
+      {v:"agent", t:"Build a reusable agent", d:"I want to set up a tool I can use all semester to turn documents into slides or briefs."}
+    ];
+    var html = '<div class="card"><p class="step-eyebrow">Step 3</p><h2 class="step-title">What do you want to do?</h2><p class="step-sub">Pick one.</p>';
+    html += '<div class="option-grid cols-3">';
+    opts.forEach(function(o){
+      var sel = state.task === o.v;
+      html += '<button class="option' + (sel?" selected":"") + '" onclick="App.selectTask(\'' + o.v + '\')">' +
+        '<span class="opt-title"><span class="check">' + (sel?"✓":"") + '</span>' + o.t + '</span>' +
+        '<span class="opt-desc">' + o.d + '</span></button>';
+    });
+    html += '</div>';
+    html += renderNav(true, state.task !== null, function(){});
+    return html;
+  }
+
+  /* ---------------------------------------------------------------------
+     STEP 4
+  --------------------------------------------------------------------- */
+  function renderStep4(){
+    var html = '<div class="card"><p class="step-eyebrow">Step 4</p><h2 class="step-title">Your Branding Choices</h2><p class="step-sub">Use our defaults for speed, or customize a few fields to match your own course or department style.</p>';
+
+    html += '<div class="defaults-panel">' +
+      '<div class="txt"><strong>Use the default style</strong><span>Montserrat, blue/teal palette, modern minimal.</span></div>' +
+      '<button class="btn btn-primary" onclick="App.useDefaults()">Use the default style →</button>' +
+    '</div>';
+
+    if(!state.customizing){
+      html += '<div class="or-divider">or</div>';
+      html += '<div style="text-align:center;"><button class="btn-link" onclick="App.openCustomize()">Customize your branding instead →</button></div>';
+    }
+
+    html += '<div class="custom-form' + (state.customizing ? " open" : "") + '" id="customForm">';
+    html += renderCustomFields();
+    html += '</div>';
+
+    html += renderNav(true, true, function(){}, state.customizing);
+    return html;
+  }
+
+  function renderCustomFields(){
+    var b = state.branding;
+    var graphicOpts = ["line","geometric","arrows","none","unsure"].map(function(k){
+      return '<option value="' + k + '"' + (b.graphicStyle===k?" selected":"") + '>' + GRAPHIC_LABELS[k] + '</option>';
+    }).join("");
+
+    return '' +
+      '<div class="form-grid">' +
+        '<div class="field"><label>Title Font</label><input type="text" id="f-titleFont" value="' + escapeHtml(b.titleFont) + '"></div>' +
+        '<div class="field"><label>Body Font</label><input type="text" id="f-bodyFont" value="' + escapeHtml(b.bodyFont) + '"></div>' +
+        '<div class="field"><label>Primary Color</label><div class="color-field">' +
+          '<input type="color" id="c-primaryColor" value="' + b.primaryColor + '">' +
+          '<input type="text" id="h-primaryColor" value="' + b.primaryColor + '"></div></div>' +
+        '<div class="field"><label>Secondary Color</label><div class="color-field">' +
+          '<input type="color" id="c-secondaryColor" value="' + b.secondaryColor + '">' +
+          '<input type="text" id="h-secondaryColor" value="' + b.secondaryColor + '"></div></div>' +
+        '<div class="field"><label>Neutral / Background Color</label><div class="color-field">' +
+          '<input type="color" id="c-neutralColor" value="' + b.neutralColor + '">' +
+          '<input type="text" id="h-neutralColor" value="' + b.neutralColor + '"></div></div>' +
+        '<div class="field"><label>Focal / Contrast Color</label><div class="color-field">' +
+          '<input type="color" id="c-focalColor" value="' + b.focalColor + '">' +
+          '<input type="text" id="h-focalColor" value="' + b.focalColor + '"></div></div>' +
+        '<div class="field" style="grid-column: 1 / -1;"><label>Graphic Style</label><select id="f-graphicStyle">' + graphicOpts + '</select></div>' +
+      '</div>' +
+      '<div class="preview-wrap">' +
+        '<div class="preview-label">Live Preview</div>' +
+        '<div class="preview-card" id="previewCard">' +
+          '<h3 class="preview-title" id="previewTitle">Your Course Title Goes Here</h3>' +
+          '<p class="preview-body" id="previewBody">This is what body text looks like with your chosen fonts and colors &mdash; enough to judge readability at a glance.</p>' +
+          '<div class="preview-row">' +
+            '<button class="preview-btn" id="previewButton">Get Started</button>' +
+            '<span class="preview-tag" id="previewTag">Unit 1</span>' +
+            '<span class="preview-graphic" id="previewGraphic"></span>' +
+          '</div>' +
+          '<div class="badges" id="previewBadges"></div>' +
+        '</div>' +
+      '</div>';
+  }
+
+  var GRAPHIC_SVG = {
+    line: '<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="15" cy="15" r="9" stroke="CUR" stroke-width="2"/><line x1="15" y1="4" x2="15" y2="0" stroke="CUR" stroke-width="2"/></svg>',
+    geometric: '<svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><rect x="2" y="2" width="14" height="14" rx="3" fill="CUR"/><circle cx="22" cy="22" r="7" fill="CUR" opacity="0.55"/></svg>',
+    arrows: '<svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg"><line x1="2" y1="15" x2="24" y2="15" stroke="CUR" stroke-width="2.5"/><path d="M18 9L24 15L18 21" stroke="CUR" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    none: '',
+    unsure: '<svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="28" height="28" rx="6" fill="none" stroke="CUR" stroke-width="2" stroke-dasharray="4 3"/><text x="15" y="20" font-size="14" text-anchor="middle" fill="CUR" font-family="sans-serif">?</text></svg>'
+  };
+
+  function wireStep4Inputs(){
+    ["titleFont","bodyFont"].forEach(function(f){
+      var el = document.getElementById("f-" + f);
+      if(el) el.addEventListener("input", function(){ state.branding[f] = el.value; updatePreview(); });
+    });
+    ["primaryColor","secondaryColor","neutralColor","focalColor"].forEach(function(f){
+      var colorEl = document.getElementById("c-" + f);
+      var hexEl = document.getElementById("h-" + f);
+      if(colorEl) colorEl.addEventListener("input", function(){
+        state.branding[f] = colorEl.value;
+        hexEl.value = colorEl.value;
+        updatePreview();
+      });
+      if(hexEl) hexEl.addEventListener("input", function(){
+        var v = normalizeHex(hexEl.value);
+        if(isValidHex(v)){ state.branding[f] = v; colorEl.value = v; updatePreview(); }
+      });
+      if(hexEl) hexEl.addEventListener("blur", function(){
+        if(!isValidHex(normalizeHex(hexEl.value))) hexEl.value = state.branding[f];
+      });
+    });
+    var gs = document.getElementById("f-graphicStyle");
+    if(gs) gs.addEventListener("change", function(){ state.branding.graphicStyle = gs.value; updatePreview(); });
+  }
+
+  function updatePreview(){
+    var b = state.branding;
+    var card = document.getElementById("previewCard");
+    if(!card) return;
+    card.style.background = b.neutralColor;
+    var titleEl = document.getElementById("previewTitle");
+    titleEl.style.color = b.primaryColor;
+    titleEl.style.fontFamily = parseFontCss(b.titleFont);
+    var bodyEl = document.getElementById("previewBody");
+    var ink = "#1F2937";
+    bodyEl.style.color = ink;
+    bodyEl.style.fontFamily = parseFontCss(b.bodyFont);
+    var btn = document.getElementById("previewButton");
+    btn.style.background = b.focalColor;
+    btn.style.color = bestTextColor(b.focalColor);
+    btn.style.fontFamily = parseFontCss(b.bodyFont);
+    var tag = document.getElementById("previewTag");
+    tag.style.background = b.secondaryColor;
+    tag.style.color = bestTextColor(b.secondaryColor);
+    tag.style.fontFamily = parseFontCss(b.bodyFont);
+    var g = document.getElementById("previewGraphic");
+    g.innerHTML = (GRAPHIC_SVG[b.graphicStyle] || "").split("CUR").join(b.primaryColor);
+
+    var titleRatio = contrastRatio(b.primaryColor, b.neutralColor);
+    var bodyRatio = contrastRatio(ink, b.neutralColor);
+    var btnRatio = contrastRatio(bestTextColor(b.focalColor), b.focalColor);
+    var tb = contrastBadge(titleRatio), bb = contrastBadge(bodyRatio), ub = contrastBadge(btnRatio);
+    document.getElementById("previewBadges").innerHTML =
+      '<span class="badge ' + tb.cls + '">Title: ' + tb.text + '</span>' +
+      '<span class="badge ' + bb.cls + '">Body: ' + bb.text + '</span>' +
+      '<span class="badge ' + ub.cls + '">Button: ' + ub.text + '</span>';
+  }
+
+  /* ---------------------------------------------------------------------
+     NAV BAR (shared)
+  --------------------------------------------------------------------- */
+  function renderNav(showBack, canProceed, onNext, hideDefaultNext){
+    var back = showBack ? '<button class="btn btn-ghost" onclick="App.goTo(' + (state.screen-1) + ')">← Back</button>' : '<span></span>';
+    var nextLabel = state.screen === 4 ? "Generate My Directions →" : "Continue →";
+    var nextAction = state.screen === 4 ? "App.finishCustomize()" : "App.goTo(" + (state.screen+1) + ")";
+    var showNext = !(state.screen === 4 && !state.customizing);
+    var next = showNext ? '<button class="btn btn-primary" ' + (canProceed?"":"disabled") + ' onclick="' + nextAction + '">' + nextLabel + '</button>' : '<span></span>';
+    return '<div class="step-nav">' + back + next + '</div>';
+  }
+
+  function finishCustomize(){ goTo("output"); }
+
+  /* ---------------------------------------------------------------------
+     OUTPUT SCREEN
+  --------------------------------------------------------------------- */
+  function renderOutput(){
+    var d = state.deliverable, b = state.branding, tools = state.tools, task = state.task;
+    var dm = DELIVERABLE_META[d];
+    var toolNames = tools.map(function(t){ return TOOL_META[t].name; });
+    var pasteToolNames = tools.filter(function(t){ return t !== "canva"; }).map(function(t){ return TOOL_META[t].name; });
+
+    var html = '<div class="card">';
+    html += '<div class="output-header"><div>' +
+      '<p class="step-eyebrow">Your Results</p>' +
+      '<h2 class="step-title">Your Personalized Plan</h2>' +
+      '<p class="step-sub">Follow the numbered directions below, then copy the prompt(s) into ' + (pasteToolNames.length?fmtList(pasteToolNames):"your AI tool") + '.</p>' +
+      '</div><button class="btn btn-ghost btn-sm" onclick="App.goTo(4)">← Back</button></div>';
+
+    html += '<div class="chip-row">' +
+      '<span class="chip">' + dm.label + '</span>' +
+      toolNames.map(function(n){ return '<span class="chip">' + n + '</span>'; }).join('') +
+      '<span class="chip">' + ({generate:"Generate from outline", improve:"Improve existing design", agent:"Build a reusable agent"})[task] + '</span>' +
+    '</div>';
+
+    html += '<h3 class="section-heading">Part 1 &middot; Your Step-by-Step Directions</h3>';
+    html += '<p class="section-sub">Plain-language steps for each tool you selected.</p>';
+
+    var canvaSelected = tools.indexOf("canva") > -1;
+    var hosts = tools.filter(function(t){ return t === "claude" || t === "chatgpt"; });
+    var coreTools = tools.filter(function(t){ return t !== "canva"; });
+
+    if(coreTools.length === 0 && canvaSelected){
+      html += '<div class="warning">⚠️&nbsp; You selected Canva without Claude or ChatGPT, so we can\'t generate connector steps. Go back to Step 2 and add Claude or ChatGPT to see Canva directions.</div>';
+    }
+
+    coreTools.forEach(function(t){
+      html += '<div class="tool-block"><h3>Using ' + TOOL_META[t].name + '</h3><ol>';
+      toolSteps(t, task, d).forEach(function(s){ html += '<li>' + s + '</li>'; });
+      html += '</ol></div>';
+    });
+
+    if(canvaSelected && hosts.length > 0){
+      html += '<div class="tool-block"><h3>Using the Canva Connector</h3><ol>';
+      canvaSteps(hosts).forEach(function(s){ html += '<li>' + s + '</li>'; });
+      html += '</ol></div>';
+    }
+
+    html += '<h3 class="section-heading">Part 2 &middot; Your Copy-Paste Prompt(s)</h3>';
+    html += '<p class="section-sub">Already filled in with your branding choices. Click Copy, then paste into your AI tool.</p>';
+
+    window.PROMPTS = buildPrompts(d, task, b);
+    window.PROMPTS.forEach(function(p, idx){
+      html += '<div class="prompt-card"><div class="prompt-card-head"><h3>' + p.title + '</h3>' +
+        '<button class="copy-btn" onclick="App.copyPrompt(' + idx + ', this)">Copy</button></div>' +
+        '<pre id="promptText' + idx + '"></pre></div>';
+    });
+
+    html += '<div class="final-actions">' +
+      '<button class="btn btn-ghost" onclick="App.goTo(4)">← Back to Branding</button>' +
+      '<button class="btn btn-focal" onclick="App.startOver()">Start Over</button>' +
+    '</div>';
+
+    html += '</div>';
+    return html;
+  }
+
+  function copyPrompt(idx, btn){
+    copyToClipboard(window.PROMPTS[idx].text, btn);
+  }
+
+  /* ---------------------------------------------------------------------
+     CONTENT: STEP-BY-STEP INSTRUCTIONS PER TOOL
+  --------------------------------------------------------------------- */
+  function toolSteps(tool, task, deliverable){
+    var dm = DELIVERABLE_META[deliverable];
+    if(tool === "claude"){
+      if(task === "generate") return [
+        'Go to <strong>claude.ai</strong> (or open the Claude app) and sign in.',
+        'Click <strong>"New chat."</strong>',
+        'Copy <strong>Prompt 1</strong> below and paste it into the message box.',
+        'Where the prompt says to paste your idea or outline, replace that line with your own notes &mdash; or attach a file using the <strong>+</strong> button.',
+        'Press enter. Claude will ask a few quick questions (audience, length, tone) &mdash; answer in a sentence or two.',
+        'Review the ' + dm.outline + ' Claude gives you, then ask for any changes before you consider it done.'
+      ];
+      if(task === "improve") return [
+        'Go to <strong>claude.ai</strong> and sign in.',
+        'Click <strong>"New chat"</strong> and attach your existing file with the <strong>+</strong> button (Word, PowerPoint, PDF, or a Google Docs export all work).',
+        'Copy <strong>Prompt 1</strong> below and paste it in right after your file finishes uploading.',
+        'Press enter. Claude will suggest specific design changes &mdash; colors, fonts, layout, and spacing.',
+        'Ask Claude to apply the changes directly, or use its suggestions to update the file yourself.'
+      ];
+      return [
+        'Go to <strong>claude.ai</strong> and sign in.',
+        'In the left sidebar, click <strong>"Projects,"</strong> then <strong>"Create project."</strong>',
+        'Give it a name, such as "Course Design Assistant."',
+        'Open <strong>"Project instructions"</strong> (sometimes called "Custom instructions") inside the project.',
+        'Copy the full system prompt below and paste it in, then save.',
+        'From now on, start a new chat inside this project any time you want to turn a document into a ' + dm.outline + ' &mdash; just drop in your file.'
+      ];
+    }
+    if(tool === "chatgpt"){
+      if(task === "generate") return [
+        'Go to <strong>chatgpt.com</strong> and sign in.',
+        'Start a <strong>new chat</strong>.',
+        'Copy <strong>Prompt 1</strong> below and paste it into the message box.',
+        'Replace the placeholder line with your own idea or outline, or attach a file with the paperclip icon.',
+        'Send it. ChatGPT will ask about audience, length, and tone &mdash; answer briefly.',
+        'Review the draft ' + dm.outline + ' and ask for edits before you\'re done.'
+      ];
+      if(task === "improve") return [
+        'Go to <strong>chatgpt.com</strong> and sign in.',
+        'Start a new chat and attach your existing file with the paperclip icon.',
+        'Copy <strong>Prompt 1</strong> below and paste it in after the file uploads.',
+        'Send it and review the design suggestions ChatGPT gives you.'
+      ];
+      return [
+        'Go to <strong>chatgpt.com</strong> and sign in.',
+        'Click your name (bottom left), then <strong>"My GPTs,"</strong> then <strong>"Create a GPT."</strong>',
+        'Switch to the <strong>"Configure"</strong> tab.',
+        'Give it a name (e.g., "Course Design Assistant") and paste the full system prompt below into the <strong>"Instructions"</strong> box.',
+        'Click <strong>"Save"</strong> and choose "Only me" unless you want to share it with colleagues.',
+        'Anytime you want to convert a document, open this GPT and drop in your file.'
+      ];
+    }
+    if(tool === "copilot"){
+      if(task === "generate") return [
+        'Go to <strong>copilot.microsoft.com</strong> (or open Copilot in Edge or Word) and sign in.',
+        'Start a new conversation.',
+        'Copy <strong>Prompt 1</strong> below and paste it into the message box.',
+        'Replace the placeholder line with your own idea or outline, or attach a file using the attachment icon.',
+        'Send it, answer Copilot\'s quick questions about audience, length, and tone, then review the ' + dm.outline + ' it gives you.'
+      ];
+      if(task === "improve") return [
+        'Go to <strong>copilot.microsoft.com</strong> (or open Copilot in Word) and sign in.',
+        'Start a new conversation and attach your existing file.',
+        'Copy <strong>Prompt 1</strong> below and paste it in after the file uploads.',
+        'Review the design suggestions and apply the ones you like.'
+      ];
+      return [
+        'Go to <strong>copilot.microsoft.com</strong> and sign in.',
+        'Save the system prompt below somewhere handy &mdash; a pinned note or a Word doc &mdash; since standard Copilot doesn\'t yet offer a simple way for individual accounts to save a persistent custom agent.',
+        'Each time you want to convert a document, start a new chat, paste the system prompt in as your first message, then attach your file.',
+        'If your institution has <strong>Copilot Studio</strong> access, your IT or ed-tech team can turn this same system prompt into a true reusable agent.'
+      ];
+    }
+    return [];
+  }
+
+  function canvaSteps(hosts){
+    var hostLabel = fmtList(hosts.map(function(h){ return TOOL_META[h].name; }));
+    var settingsPath = hosts.length === 2
+      ? 'Claude: <strong>Settings → Connectors</strong>. In ChatGPT: <strong>Settings → Connectors</strong>'
+      : (hosts[0] === "claude" ? '<strong>Settings → Connectors</strong>' : '<strong>Settings → Connectors</strong> (in some accounts, "Connected apps")');
+    return [
+      'Inside ' + hostLabel + ', open ' + settingsPath + '.',
+      'Find <strong>Canva</strong> in the list, click <strong>"Connect,"</strong> then sign in to your Canva account and approve access.',
+      'Go back to your chat (or project) and generate your outline as usual, using the steps above.',
+      'Once you have an outline you like, ask: <em>"Using the Canva connector, create this as a Canva design."</em>',
+      hostLabel + ' will build a starting design inside Canva &mdash; open it there to fine-tune layout, images, and animation.'
+    ];
+  }
+
+  /* ---------------------------------------------------------------------
+     CONTENT: COPY-PASTE PROMPTS
+  --------------------------------------------------------------------- */
+  function brandBlock(b){
+    return "- Title Font: " + b.titleFont + "\n" +
+      "- Body Font: " + b.bodyFont + "\n" +
+      "- Primary Color: " + b.primaryColor + "\n" +
+      "- Secondary Color: " + b.secondaryColor + "\n" +
+      "- Background/Neutral Color: " + b.neutralColor + "\n" +
+      "- Focal/Contrast Color: " + b.focalColor + "\n" +
+      "- Graphic Style: " + GRAPHIC_LABELS[b.graphicStyle] + "\n" +
+      "- Visual Approach: Modern and minimal. Strong visual hierarchy. Good white space. Accessible contrast. Consistent use of fonts and colors throughout.";
+  }
+
+  function formatBlock(deliverable){
+    var slideFmt = "For each slide, use this format:\nSlide [Number]\nTitle: [Slide title]\nBullets: [Short bullet points — no dense paragraphs]\nSpeaker Notes: [Any detail that belongs in spoken delivery, not on the slide]";
+    var docFmt = "For each section, use this format:\nSection [Number]\nHeading: [Section heading]\nBody: [Clear, scannable prose or bullets as appropriate]\nDesign Note: [How this section should be visually treated — e.g., a table, callout box, or bulleted list]";
+    if(deliverable === "slides") return slideFmt;
+    if(deliverable === "document") return docFmt;
+    return "For the slide deck:\n" + slideFmt + "\n\nFor the document:\n" + docFmt;
+  }
+
+  function generatePromptText(deliverable, b){
+    var dm = DELIVERABLE_META[deliverable];
+    return "I have an idea or rough outline that I'd like you to turn into a well-designed " + dm.outline + ".\n\n" +
+      "Please follow these brand guidelines for all formatting and design choices:\n" + brandBlock(b) + "\n\n" +
+      "Before you begin, ask me:\n1. Who is the audience?\n2. How many slides or sections should this target?\n3. What tone should it use?\n\n" +
+      "Once I answer, briefly summarize the structure you're planning so I can confirm it, then generate the full outline.\n\n" +
+      formatBlock(deliverable) + "\n\n" +
+      "Here is my idea or outline:\n[PASTE YOUR IDEA OR OUTLINE HERE]";
+  }
+
+  function improvePromptText(deliverable, b){
+    var dm = DELIVERABLE_META[deliverable];
+    return "I've attached a " + dm.label + " I already created. Please review it and suggest specific design improvements — don't rewrite the content unless I ask.\n\n" +
+      "Evaluate it against these brand guidelines:\n" + brandBlock(b) + "\n\n" +
+      "Please give me:\n1. What's already working well.\n2. A numbered list of specific changes to improve visual hierarchy, color use, typography, and spacing — with a brief reason for each.\n3. Anything that looks inconsistent from one slide or section to the next.\n\n" +
+      "Keep your suggestions concrete enough that I could hand them to a designer, or apply them myself.";
+  }
+
+  function agentPromptText(deliverable, b){
+    var dm = DELIVERABLE_META[deliverable];
+    var outputSections = "";
+    if(deliverable === "slides" || deliverable === "both"){
+      outputSections += "OUTPUT FORMAT — SLIDE DECK\nFor each slide use this format:\nSlide [Number]\nTitle: [Slide title]\nBullets: [Short bullet points — no dense paragraphs]\nSpeaker Notes: [Any detail that belongs in spoken delivery, not on the slide]\nUse section header slides to separate major parts when the source has more than three distinct sections.\n\n";
+    }
+    if(deliverable === "document" || deliverable === "both"){
+      outputSections += "OUTPUT FORMAT — DOCUMENT OR ASSIGNMENT BRIEF\nFor each section use this format:\nSection [Number]\nHeading: [Section heading]\nBody: [Clear, scannable prose or bullets as appropriate]\nDesign Note: [Any note about how this section should be visually treated — e.g. use a table, callout box, or bulleted list]\n\n";
+    }
+    return "You are a presentation and document design assistant. Your task is to take any document — a report, a proposal, a memo, a reading, or an assignment brief — and convert it into a well-structured, clearly designed " + dm.agentToken + " that reflects the following brand guidelines.\n\n" +
+      "BRAND GUIDELINES\n" +
+      "Title Font: " + b.titleFont + "\n" +
+      "Body Font: " + b.bodyFont + "\n" +
+      "Primary Color: " + b.primaryColor + "\n" +
+      "Secondary Color: " + b.secondaryColor + "\n" +
+      "Background/Neutral Color: " + b.neutralColor + "\n" +
+      "Focal/Contrast Color: " + b.focalColor + "\n" +
+      "Graphic Style: " + GRAPHIC_LABELS[b.graphicStyle] + "\n" +
+      "Visual Approach: Modern and minimal. Strong visual hierarchy. Generous white space. All color combinations must meet accessible contrast standards. Fonts and colors are used consistently across all materials.\n\n" +
+      "BEFORE YOU BEGIN\nAsk the following questions if they have not already been answered:\n1. Who is the intended audience?\n2. How many slides or sections should the output target?\n3. What tone should the presentation or document use?\n\n" +
+      "Once answered, identify the natural structure of the document and summarize it briefly before generating the full output, so it can be confirmed before proceeding.\n\n" +
+      outputSections +
+      "RULES\nDo not fabricate information not in the source document.\nIf a section is ambiguous, note it rather than guessing.\nKeep language plain and avoid repeating the same content across sections.\nApply the brand guidelines to all design recommendations and notes.";
+  }
+
+  function buildPrompts(deliverable, task, b){
+    if(task === "generate") return [{title:"Prompt 1 · Generate Your " + capitalize(DELIVERABLE_META[deliverable].outline), text: generatePromptText(deliverable, b)}];
+    if(task === "improve") return [{title:"Prompt 1 · Improve Your Design", text: improvePromptText(deliverable, b)}];
+    return [{title:"Your Reusable Agent System Prompt", text: agentPromptText(deliverable, b)}];
+  }
+
+  function capitalize(s){ return s.charAt(0).toUpperCase() + s.slice(1); }
+
+  /* ---------------------------------------------------------------------
+     PUBLIC API + INIT
+  --------------------------------------------------------------------- */
+  window.App = {
+    goTo: goTo, startOver: startOver, toggleTheme: toggleTheme,
+    selectDeliverable: selectDeliverable, toggleTool: toggleTool, selectTask: selectTask,
+    useDefaults: useDefaults, openCustomize: openCustomize, finishCustomize: finishCustomize,
+    copyPrompt: copyPrompt
+  };
+
+  render();
+})();
+</script>
+</body>
+</html>
