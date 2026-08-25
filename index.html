@@ -1014,7 +1014,7 @@
         'Where the prompt says to paste your idea or outline, replace that line with your own notes &mdash; or attach a file using the <strong>+</strong> button.',
         'Press enter. Claude will ask a few quick questions (audience, length, tone) &mdash; answer in a sentence or two.',
         'Review the ' + dm.outline + ' Claude gives you, then ask for any changes before you consider it done.',
-        'Claude can generate an actual downloadable ' + fileWord(deliverable) + ' file directly in the chat. If it gives you plain text instead, ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file"</em> (look under Settings for a file-creation option if this doesn\'t work right away).'
+        'Claude can generate ' + filePhrase(deliverable) + ' directly in the chat, not just plain text. If it only gives you plain text, ask: <em>"Please create this as ' + filePhrase(deliverable) + '"</em> (look under Settings for a file-creation option if this doesn\'t work right away).'
       ];
       if(task === "improve") return [
         'Go to <strong>claude.ai</strong> and sign in.',
@@ -1030,7 +1030,7 @@
         'Open <strong>"Project instructions"</strong> and paste the full system prompt below into it, then save.',
         'You\'ll also see a <strong>"Project knowledge"</strong> area on the project page &mdash; this is where you could optionally upload reference files (a past syllabus, your full style guide, example decks) for the project to pull from in every chat. You can leave it empty for now and add files anytime.',
         'From now on, start a new chat inside this project any time you want to convert a document &mdash; paste one of the usage prompts below (or write your own) and attach your file.',
-        'Claude can generate an actual downloadable ' + fileWord(deliverable) + ' file directly in the chat. If it only gives you plain text, ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file"</em> (look under Settings for a file-creation option if this doesn\'t work right away).'
+        'Claude can generate ' + filePhrase(deliverable) + ' directly in the chat, not just plain text. If it only gives you plain text, ask: <em>"Please create this as ' + filePhrase(deliverable) + '"</em> (look under Settings for a file-creation option if this doesn\'t work right away).'
       ];
     }
     if(tool === "chatgpt"){
@@ -1041,7 +1041,7 @@
         'Replace the placeholder line with your own idea or outline, or attach a file with the paperclip icon.',
         'Send it. ChatGPT will ask about audience, length, and tone &mdash; answer briefly.',
         'Review the draft ' + dm.outline + ' and ask for edits before you\'re done.',
-        'To get an actual downloadable ' + fileWord(deliverable) + ' file instead of plain text, make sure <strong>Code Interpreter &amp; Data Analysis</strong> is available and ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file."</em>'
+        'To get ' + filePhrase(deliverable) + ' instead of plain text, make sure <strong>Code Interpreter &amp; Data Analysis</strong> is available and ask: <em>"Please create this as ' + filePhrase(deliverable) + '."</em>'
       ];
       if(task === "improve") return [
         'Go to <strong>chatgpt.com</strong> and sign in.',
@@ -1169,8 +1169,23 @@
     return "PowerPoint and Word";
   }
 
+  // A complete, correctly-pluralized noun phrase (with its own article, or
+  // none for the plural "both" case) -- drop this straight into a sentence
+  // rather than gluing "a/an" + fileWord(deliverable) + "file" together,
+  // which reads as "a PowerPoint and Word file" (wrong) for "both".
+  function filePhrase(deliverable){
+    if(deliverable === "slides") return "a downloadable PowerPoint file";
+    if(deliverable === "document") return "a downloadable Word file";
+    return "downloadable PowerPoint and Word files";
+  }
+
   function fileDeliverableNote(deliverable){
-    return "Once the structure above is confirmed, generate the actual file — a real " + fileWord(deliverable) + " file, not just a text outline. Use the bullets as genuine slide content and put speaker notes in the slide's notes field (not printed on the slide itself), then provide it as a file I can download. If you're not able to generate a downloadable file directly, say so plainly, then give me the same content as a text outline instead so I can copy it in by hand.";
+    var slideNote = "For the slide deck, use the bullets as genuine slide content and put speaker notes in the slide's notes field (not printed on the slide itself).";
+    var docNote = "For the document, use real headings and paragraph styles to build the structure (not just bold text), so it behaves like a properly formatted Word document, not a plain text file.";
+    var howTo = deliverable === "slides" ? slideNote : (deliverable === "document" ? docNote : slideNote + " " + docNote);
+    var fileNoun = deliverable === "both" ? "files" : "file";
+    var article = deliverable === "both" ? "" : "a ";
+    return "Once the structure above is confirmed, generate the actual " + fileNoun + " — " + article + "real " + fileWord(deliverable) + " " + fileNoun + ", not just a text outline. " + howTo + " Provide " + (deliverable === "both" ? "them" : "it") + " as " + (deliverable === "both" ? "files" : "a file") + " I can download. If you're not able to generate a downloadable file directly, say so plainly, then give me the same content as a text outline instead so I can copy it in by hand.";
   }
 
   function generatePromptText(deliverable, b){
@@ -1290,7 +1305,7 @@
       : (deliverable === "slides"
         ? ' You can also paste the confirmed outline into Copilot inside PowerPoint itself (Home tab → Copilot → "Create presentation from text") if you\'d rather build it there directly.'
         : ' You can also paste the confirmed outline into Copilot inside PowerPoint or Word directly (Home tab → Copilot) if you\'d rather build it there.');
-    return 'Copilot can generate an actual downloadable ' + fileWord(deliverable) + ' file directly in the chat. If it only gives you plain text, ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file."</em>' + extraTip;
+    return 'Copilot can generate ' + filePhrase(deliverable) + ' directly in the chat. If it only gives you plain text, ask: <em>"Please create this as ' + filePhrase(deliverable) + '."</em>' + extraTip;
   }
 
   function buildPrompts(deliverable, task, b, tool){
