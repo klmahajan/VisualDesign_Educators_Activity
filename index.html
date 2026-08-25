@@ -205,6 +205,7 @@
   .option-grid.cols-3 .option .check{ border-radius: 999px; }
 
   .note{ font-size: 12.5px; color: var(--text-muted); margin-top: 4px; }
+  .canva-toggle{ width: 100%; margin-top: 14px; }
   .warning{
     margin-top: 14px; background: var(--focal-soft); border: 1px solid var(--focal);
     color: var(--text); border-radius: var(--radius-sm); padding: 12px 16px; font-size: 13.5px;
@@ -394,7 +395,8 @@
   var state = {
     screen: "welcome",       // welcome | 1 | 2 | 3 | 4 | output
     deliverable: null,       // slides | document | both
-    tools: [],               // subset of claude, chatgpt, copilot, canva
+    tool: null,              // claude | chatgpt | copilot
+    canva: false,            // optional Canva connector add-on
     task: null,              // generate | improve | agent
     customizing: false,
     branding: Object.assign({}, DEFAULT_BRANDING),
@@ -498,12 +500,6 @@
     return first + ", Arial, sans-serif";
   }
 
-  function fmtList(arr){
-    if(arr.length === 1) return arr[0];
-    if(arr.length === 2) return arr[0] + " and " + arr[1];
-    return arr.slice(0,-1).join(", ") + ", and " + arr[arr.length-1];
-  }
-
   function copyToClipboard(text, btn){
     function ok(){
       var original = btn.textContent;
@@ -538,7 +534,8 @@
   function startOver(){
     state.screen = "welcome";
     state.deliverable = null;
-    state.tools = [];
+    state.tool = null;
+    state.canva = false;
     state.task = null;
     state.customizing = false;
     state.branding = Object.assign({}, DEFAULT_BRANDING);
@@ -553,11 +550,8 @@
   }
 
   function selectDeliverable(v){ state.deliverable = v; render(); }
-  function toggleTool(v){
-    var i = state.tools.indexOf(v);
-    if(i > -1) state.tools.splice(i,1); else state.tools.push(v);
-    render();
-  }
+  function selectTool(v){ state.tool = v; render(); }
+  function toggleCanva(){ state.canva = !state.canva; render(); }
   function selectTask(v){ state.task = v; render(); }
   function useDefaults(){
     // "Use this style" keeps whichever palette is currently selected (the
@@ -710,25 +704,22 @@
     var opts = [
       {v:"claude", t:"Claude", d:"Anthropic's AI assistant."},
       {v:"chatgpt", t:"ChatGPT", d:"OpenAI's AI assistant."},
-      {v:"copilot", t:"Microsoft Copilot", d:"Built into Microsoft 365 and the web."},
-      {v:"canva", t:"Canva", d:"Via connector with Claude or ChatGPT."}
+      {v:"copilot", t:"Microsoft Copilot", d:"Built into Microsoft 365 and the web."}
     ];
-    var html = '<div class="card"><p class="step-eyebrow">Step 2</p><h2 class="step-title">What AI tool will you be using?</h2><p class="step-sub">Select all that apply.</p>';
-    html += '<div class="option-grid cols-4">';
+    var html = '<div class="card"><p class="step-eyebrow">Step 2</p><h2 class="step-title">What AI tool will you be using?</h2><p class="step-sub">Pick one.</p>';
+    html += '<div class="option-grid cols-3">';
     opts.forEach(function(o){
-      var sel = state.tools.indexOf(o.v) > -1;
-      html += '<button class="option' + (sel?" selected":"") + '" onclick="App.toggleTool(\'' + o.v + '\')">' +
+      var sel = state.tool === o.v;
+      html += '<button class="option' + (sel?" selected":"") + '" onclick="App.selectTool(\'' + o.v + '\')">' +
         '<span class="opt-title"><span class="check">' + (sel?"✓":"") + '</span>' + o.t + '</span>' +
         '<span class="opt-desc">' + o.d + '</span></button>';
     });
     html += '</div>';
-    html += '<div class="info-box">💡&nbsp; <strong>Good to know:</strong> Claude, ChatGPT, and Copilot can all create Word documents, PowerPoint slides, and more on their own &mdash; no connector required. The Canva connector is only needed if you specifically want your design built inside Canva itself. Canva works as an add-on with Claude or ChatGPT, so select one of those as well.</div>';
-    var canva = state.tools.indexOf("canva") > -1;
-    var hasHost = state.tools.indexOf("claude") > -1 || state.tools.indexOf("chatgpt") > -1;
-    if(canva && !hasHost){
-      html += '<div class="warning">⚠️&nbsp; Please also select Claude or ChatGPT to use the Canva connector.</div>';
-    }
-    html += renderNav(true, state.tools.length > 0, function(){});
+    html += '<div class="info-box">💡&nbsp; <strong>Good to know:</strong> Claude, ChatGPT, and Copilot can all create Word documents, PowerPoint slides, and more on their own &mdash; no connector required. Only add Canva below if you specifically want your design built inside Canva itself.</div>';
+    html += '<button class="option canva-toggle' + (state.canva?" selected":"") + '" onclick="App.toggleCanva()">' +
+      '<span class="opt-title"><span class="check">' + (state.canva?"✓":"") + '</span>Also connect Canva <span class="note" style="margin:0;font-weight:600;">(optional)</span></span>' +
+      '<span class="opt-desc">Canva works as an add-on inside whichever tool you picked above.</span></button>';
+    html += renderNav(true, state.tool !== null, function(){});
     return html;
   }
 
@@ -945,22 +936,22 @@
      OUTPUT SCREEN
   --------------------------------------------------------------------- */
   function renderOutput(){
-    var d = state.deliverable, b = state.branding, tools = state.tools, task = state.task;
+    var d = state.deliverable, b = state.branding, tool = state.tool, task = state.task;
     var dm = DELIVERABLE_META[d];
-    var toolNames = tools.map(function(t){ return TOOL_META[t].name; });
-    var pasteToolNames = tools.filter(function(t){ return t !== "canva"; }).map(function(t){ return TOOL_META[t].name; });
+    var toolName = TOOL_META[tool].name;
 
     var html = '<div class="card">';
     html += '<div class="print-header">Better by Design &middot; Your Personalized Plan &middot; ' + new Date().toLocaleDateString() + '</div>';
     html += '<div class="output-header"><div>' +
       '<p class="step-eyebrow">Your Results</p>' +
       '<h2 class="step-title">Your Personalized Plan</h2>' +
-      '<p class="step-sub">Follow the numbered directions below, then copy the prompt(s) into ' + (pasteToolNames.length?fmtList(pasteToolNames):"your AI tool") + '.</p>' +
+      '<p class="step-sub">Follow the numbered directions below, then copy the prompt(s) into ' + toolName + '.</p>' +
       '</div><button class="btn btn-ghost btn-sm" onclick="App.goTo(4)">← Back</button></div>';
 
     html += '<div class="chip-row">' +
       '<span class="chip">' + dm.label + '</span>' +
-      toolNames.map(function(n){ return '<span class="chip">' + n + '</span>'; }).join('') +
+      '<span class="chip">' + toolName + '</span>' +
+      (state.canva ? '<span class="chip">Canva</span>' : '') +
       '<span class="chip">' + ({generate:"Generate from outline", improve:"Improve existing design", agent:"Build a reusable agent"})[task] + '</span>' +
     '</div>';
 
@@ -969,30 +960,20 @@
     html += '<h3 class="section-heading">Part 1 &middot; Your Step-by-Step Directions</h3>';
     html += '<p class="section-sub">Plain-language steps for each tool you selected.</p>';
 
-    var canvaSelected = tools.indexOf("canva") > -1;
-    var hosts = tools.filter(function(t){ return t === "claude" || t === "chatgpt"; });
-    var coreTools = tools.filter(function(t){ return t !== "canva"; });
+    html += '<div class="tool-block"><h3>Using ' + toolName + '</h3><ol>';
+    toolSteps(tool, task, d).forEach(function(s){ html += '<li>' + s + '</li>'; });
+    html += '</ol></div>';
 
-    if(coreTools.length === 0 && canvaSelected){
-      html += '<div class="warning">⚠️&nbsp; You selected Canva without Claude or ChatGPT, so we can\'t generate connector steps. Go back to Step 2 and add Claude or ChatGPT to see Canva directions.</div>';
-    }
-
-    coreTools.forEach(function(t){
-      html += '<div class="tool-block"><h3>Using ' + TOOL_META[t].name + '</h3><ol>';
-      toolSteps(t, task, d).forEach(function(s){ html += '<li>' + s + '</li>'; });
-      html += '</ol></div>';
-    });
-
-    if(canvaSelected && hosts.length > 0){
+    if(state.canva){
       html += '<div class="tool-block"><h3>Using the Canva Connector</h3><ol>';
-      canvaSteps(hosts).forEach(function(s){ html += '<li>' + s + '</li>'; });
+      canvaSteps(tool).forEach(function(s){ html += '<li>' + s + '</li>'; });
       html += '</ol></div>';
     }
 
     html += '<h3 class="section-heading">Part 2 &middot; Your Copy-Paste Prompt(s)</h3>';
     html += '<p class="section-sub">Already filled in with your branding choices. Click Copy, then paste into your AI tool.</p>';
 
-    window.PROMPTS = buildPrompts(d, task, b, tools);
+    window.PROMPTS = buildPrompts(d, task, b, tool);
     window.PROMPTS.forEach(function(p, idx){
       html += '<div class="prompt-card"><div class="prompt-card-head"><h3>' + p.title + '</h3>' +
         '<button class="copy-btn" onclick="App.copyPrompt(' + idx + ', this)">Copy</button></div>' +
@@ -1111,23 +1092,45 @@
     return [];
   }
 
-  function canvaSteps(hosts){
-    var hostLabel = fmtList(hosts.map(function(h){ return TOOL_META[h].name; }));
-    var settingsPath = hosts.length === 2
-      ? 'Claude: <strong>Settings → Connectors</strong>. In ChatGPT: <strong>Settings → Connectors</strong>'
-      : (hosts[0] === "claude" ? '<strong>Settings → Connectors</strong>' : '<strong>Settings → Connectors</strong> (in some accounts, "Connected apps")');
+  function canvaSteps(tool){
+    var name = TOOL_META[tool].name;
+    if(tool === "copilot"){
+      return [
+        'Select <strong>Apps</strong>, <strong>Plugins</strong>, or the tool/agent picker inside Copilot &mdash; Microsoft\'s exact label varies by interface.',
+        'Search for <strong>Canva</strong>.',
+        'Select it and complete the Canva sign-in/authorization prompt if it appears.',
+        'Go back to your chat and generate your outline as usual, using the steps above.',
+        'Once you have an outline you like, ask: <em>"Using Canva, create this as a Canva design."</em>',
+        'Copilot will build a starting design inside Canva &mdash; open it there to fine-tune layout, images, and animation.'
+      ];
+    }
     return [
-      'Inside ' + hostLabel + ', open ' + settingsPath + '.',
+      'Inside ' + name + ', open <strong>Settings → Connectors</strong>.',
       'Find <strong>Canva</strong> in the list, click <strong>"Connect,"</strong> then sign in to your Canva account and approve access.',
       'Go back to your chat (or project) and generate your outline as usual, using the steps above.',
       'Once you have an outline you like, ask: <em>"Using the Canva connector, create this as a Canva design."</em>',
-      hostLabel + ' will build a starting design inside Canva &mdash; open it there to fine-tune layout, images, and animation.'
+      name + ' will build a starting design inside Canva &mdash; open it there to fine-tune layout, images, and animation.'
     ];
   }
 
   /* ---------------------------------------------------------------------
      CONTENT: COPY-PASTE PROMPTS
   --------------------------------------------------------------------- */
+  // Concrete, checkable hierarchy rules -- a one-line "strong visual
+  // hierarchy" instruction reliably produces generic, flat-looking output
+  // (confirmed via live testing), so every prompt spells out exactly what
+  // hierarchy means: relative sizes, how subtitles are used, bullet limits,
+  // and restraint on the accent color.
+  function visualHierarchyRules(){
+    return "  - Titles: large, bold, and clearly the biggest text on the slide or page, set in the Title Font and Primary Color.\n" +
+      "  - Subtitles/section headers: a consistent, distinct style -- smaller than titles, larger than body text -- used the same way every time to signal a new idea or section.\n" +
+      "  - Body text and bullets: noticeably smaller than titles/subtitles, in the Body Font, with one clear idea per slide or section and no more than 5-6 short bullets -- split up dense content across multiple slides/sections rather than shrinking text to fit.\n" +
+      "  - Focal/Contrast Color: used sparingly, only on the single most important element per slide or section (a key stat, a call-to-action, a label) -- never as a general accent.\n" +
+      "  - Generous, consistent margins and white space around all text -- avoid cramped, edge-to-edge layouts.\n" +
+      "  - Identical treatment for repeating elements (e.g., every section-header slide, every callout box) so the design feels like one system, not ad hoc.\n" +
+      "  - All color and text combinations must meet accessible contrast standards.";
+  }
+
   function brandBlock(b){
     return "- Title Font: " + b.titleFont + "\n" +
       "- Body Font: " + b.bodyFont + "\n" +
@@ -1136,11 +1139,11 @@
       "- Background/Neutral Color: " + b.neutralColor + "\n" +
       "- Focal/Contrast Color: " + b.focalColor + "\n" +
       "- Graphic Style: " + b.graphicStyle + "\n" +
-      "- Visual Approach: Modern and minimal. Strong visual hierarchy. Good white space. Accessible contrast. Consistent use of fonts and colors throughout.";
+      "- Visual Approach: Modern and minimal, with strong, deliberate visual hierarchy:\n" + visualHierarchyRules();
   }
 
   function formatBlock(deliverable){
-    var slideFmt = "For each slide, use this format:\nSlide [Number]\nTitle: [Slide title]\nBullets: [Short bullet points — no dense paragraphs]\nSpeaker Notes: [Any detail that belongs in spoken delivery, not on the slide]";
+    var slideFmt = "For each slide, use this format:\nSlide [Number]\nTitle: [Slide title]\nBullets: [Short bullet points, no more than 5-6 per slide — no dense paragraphs]\nSpeaker Notes: [Any detail that belongs in spoken delivery, not on the slide]";
     var docFmt = "For each section, use this format:\nSection [Number]\nHeading: [Section heading]\nBody: [Clear, scannable prose or bullets as appropriate]\nDesign Note: [How this section should be visually treated — e.g., a table, callout box, or bulleted list]";
     if(deliverable === "slides") return slideFmt;
     if(deliverable === "document") return docFmt;
@@ -1182,7 +1185,7 @@
     var dm = DELIVERABLE_META[deliverable];
     var outputSections = "";
     if(deliverable === "slides" || deliverable === "both"){
-      outputSections += "OUTPUT FORMAT — SLIDE DECK\nFor each slide use this format:\nSlide [Number]\nTitle: [Slide title]\nBullets: [Short bullet points — no dense paragraphs]\nSpeaker Notes: [Any detail that belongs in spoken delivery, not on the slide]\nUse section header slides to separate major parts when the source has more than three distinct sections.\n\n";
+      outputSections += "OUTPUT FORMAT — SLIDE DECK\nFor each slide use this format:\nSlide [Number]\nTitle: [Slide title]\nBullets: [Short bullet points, no more than 5-6 per slide — no dense paragraphs]\nSpeaker Notes: [Any detail that belongs in spoken delivery, not on the slide]\nUse section header slides to separate major parts when the source has more than three distinct sections.\n\n";
     }
     if(deliverable === "document" || deliverable === "both"){
       outputSections += "OUTPUT FORMAT — DOCUMENT OR ASSIGNMENT BRIEF\nFor each section use this format:\nSection [Number]\nHeading: [Section heading]\nBody: [Clear, scannable prose or bullets as appropriate]\nDesign Note: [Any note about how this section should be visually treated — e.g. use a table, callout box, or bulleted list]\n\n";
@@ -1196,7 +1199,7 @@
       "Background/Neutral Color: " + b.neutralColor + "\n" +
       "Focal/Contrast Color: " + b.focalColor + "\n" +
       "Graphic Style: " + b.graphicStyle + "\n" +
-      "Visual Approach: Modern and minimal. Strong visual hierarchy. Generous white space. All color combinations must meet accessible contrast standards. Fonts and colors are used consistently across all materials.\n\n" +
+      "Visual Approach: Modern and minimal, with strong, deliberate visual hierarchy:\n" + visualHierarchyRules() + "\n\n" +
       "BEFORE YOU BEGIN\nAsk the following questions if they have not already been answered:\n1. Who is the intended audience?\n2. How many slides or sections should the output target?\n3. What tone should the presentation or document use?\n\n" +
       "Once answered, identify the natural structure of the document and summarize it briefly before generating the full output, so it can be confirmed before proceeding.\n\n" +
       outputSections +
@@ -1235,23 +1238,23 @@
     ];
   }
 
-  // Copilot's standalone agent builder is the least reliable of the three for
-  // producing an actual downloadable file -- point to Copilot inside
-  // PowerPoint/Word itself as the dependable fallback.
   function copilotFileFallback(deliverable){
-    if(deliverable === "document") return 'If you get a text outline instead of an actual downloadable Word file, paste the confirmed outline into Copilot inside Word itself (Home tab → Copilot), which is built to generate a real document.';
-    if(deliverable === "slides") return 'If you get a text outline instead of an actual downloadable PowerPoint file, paste the confirmed outline into Copilot inside PowerPoint itself (Home tab → Copilot → "Create presentation from text"), which is built to generate real slides.';
-    return 'If you get a text outline instead of actual downloadable files, paste the confirmed slide outline into Copilot inside PowerPoint (Home tab → Copilot → "Create presentation from text"), and the confirmed section outline into Copilot inside Word (Home tab → Copilot).';
+    var extraTip = deliverable === "document"
+      ? ' You can also paste the confirmed outline into Copilot inside Word itself (Home tab → Copilot) if you\'d rather build it there directly.'
+      : (deliverable === "slides"
+        ? ' You can also paste the confirmed outline into Copilot inside PowerPoint itself (Home tab → Copilot → "Create presentation from text") if you\'d rather build it there directly.'
+        : ' You can also paste the confirmed outline into Copilot inside PowerPoint or Word directly (Home tab → Copilot) if you\'d rather build it there.');
+    return 'Copilot can generate an actual downloadable ' + fileWord(deliverable) + ' file directly in the chat. If it only gives you plain text, ask: <em>"Please create this as a downloadable ' + fileWord(deliverable) + ' file."</em>' + extraTip;
   }
 
-  function buildPrompts(deliverable, task, b, tools){
+  function buildPrompts(deliverable, task, b, tool){
     if(task === "generate") return [{title:"Prompt 1 · Generate Your " + capitalize(DELIVERABLE_META[deliverable].outline), text: generatePromptText(deliverable, b)}];
     if(task === "improve") return [{title:"Prompt 1 · Improve Your Design", text: improvePromptText(deliverable, b)}];
 
     var prompts = [{title:"Your Reusable Agent System Prompt", text: agentPromptText(deliverable, b)}];
     var starters = starterPrompts(deliverable).join("\n");
-    if(tools.indexOf("chatgpt") > -1) prompts.push({title:"Conversation Starters (for ChatGPT)", text: starters});
-    if(tools.indexOf("copilot") > -1) prompts.push({title:"Suggested Prompts (for Copilot)", text: starters});
+    if(tool === "chatgpt") prompts.push({title:"Conversation Starters (for ChatGPT)", text: starters});
+    if(tool === "copilot") prompts.push({title:"Suggested Prompts (for Copilot)", text: starters});
     usagePrompts(deliverable).forEach(function(p){ prompts.push(p); });
     return prompts;
   }
@@ -1263,7 +1266,7 @@
   --------------------------------------------------------------------- */
   window.App = {
     goTo: goTo, startOver: startOver, toggleTheme: toggleTheme,
-    selectDeliverable: selectDeliverable, toggleTool: toggleTool, selectTask: selectTask,
+    selectDeliverable: selectDeliverable, selectTool: selectTool, toggleCanva: toggleCanva, selectTask: selectTask,
     useDefaults: useDefaults, openCustomize: openCustomize, finishCustomize: finishCustomize,
     copyPrompt: copyPrompt, downloadPdf: downloadPdf,
     selectPalette: selectPalette, applyGraphicSuggestion: applyGraphicSuggestion
