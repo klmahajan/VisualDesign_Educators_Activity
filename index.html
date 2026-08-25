@@ -1131,6 +1131,17 @@
       "  - All color and text combinations must meet accessible contrast standards.";
   }
 
+  // Confirm-before-delivering self-check -- a known reliability technique:
+  // giving the model a concrete checklist to run against its own draft catches
+  // exactly the generic, flat output the one-line instructions were producing.
+  function qualityCheckBlock(){
+    return "- Every title is clearly the largest, boldest text on its slide or page.\n" +
+      "- No slide or section has more than 5-6 bullets, or a dense paragraph.\n" +
+      "- The Focal/Contrast Color appears on at most one element per slide or section — not as a general accent.\n" +
+      "- Fonts and colors match the brand guidelines exactly, throughout.\n" +
+      "- The output is an actual downloadable file (or you've clearly said why not, with a text outline as a fallback).";
+  }
+
   function brandBlock(b){
     return "- Title Font: " + b.titleFont + "\n" +
       "- Body Font: " + b.bodyFont + "\n" +
@@ -1164,21 +1175,41 @@
 
   function generatePromptText(deliverable, b){
     var dm = DELIVERABLE_META[deliverable];
-    return "I have an idea or rough outline that I'd like you to turn into a well-designed " + dm.outline + ".\n\n" +
-      "Please follow these brand guidelines for all formatting and design choices:\n" + brandBlock(b) + "\n\n" +
-      "Before you begin, ask me:\n1. Who is the audience?\n2. How many slides or sections should this target?\n3. What tone should it use?\n\n" +
-      "Once I answer, briefly summarize the structure you're planning so I can confirm it, then generate the full outline.\n\n" +
-      formatBlock(deliverable) + "\n\n" +
-      fileDeliverableNote(deliverable) + "\n\n" +
-      "Here is my idea or outline:\n[PASTE YOUR IDEA OR OUTLINE HERE]";
+    return "ROLE\n" +
+      "You are an expert presentation and document designer helping a college instructor turn a rough idea into a polished, well-designed " + dm.outline + ".\n\n" +
+      "CONTEXT\n" +
+      "This will be used in a college course, so it needs to hold up visually in front of a class or as a handout — not just read correctly as text.\n\n" +
+      "BRAND GUIDELINES\n" + brandBlock(b) + "\n\n" +
+      "BEFORE YOU BEGIN\n" +
+      "Ask me:\n1. Who is the audience?\n2. How many slides or sections should this target?\n3. What tone should it use?\n" +
+      "Don't guess at these — wait for my answer if I haven't already told you.\n\n" +
+      "PROCESS\n" +
+      "1. Once I answer, briefly summarize the structure you're planning (a short numbered list) so I can confirm or redirect it before you build the full thing.\n" +
+      "2. After I confirm, generate the complete " + dm.outline + " using the OUTPUT FORMAT below.\n" +
+      "3. Before showing me the final version, run it through the QUALITY CHECK below and fix anything that doesn't pass.\n\n" +
+      "OUTPUT FORMAT\n" + formatBlock(deliverable) + "\n\n" +
+      "OUTPUT DELIVERABLE\n" + fileDeliverableNote(deliverable) + "\n\n" +
+      "QUALITY CHECK — confirm all of these before presenting your final version:\n" + qualityCheckBlock() + "\n\n" +
+      "SOURCE MATERIAL\n[PASTE YOUR IDEA OR OUTLINE HERE]";
   }
 
   function improvePromptText(deliverable, b){
     var dm = DELIVERABLE_META[deliverable];
-    return "I've attached a " + dm.label + " I already created. Please review it and suggest specific design improvements — don't rewrite the content unless I ask.\n\n" +
-      "Evaluate it against these brand guidelines:\n" + brandBlock(b) + "\n\n" +
-      "Please give me:\n1. What's already working well.\n2. A numbered list of specific changes to improve visual hierarchy, color use, typography, and spacing — with a brief reason for each.\n3. Anything that looks inconsistent from one slide or section to the next.\n\n" +
-      "If you're able to edit the uploaded file directly, please do so and give me back an updated, downloadable file. Otherwise, keep your suggestions concrete enough that I could hand them to a designer, or apply them myself.";
+    return "ROLE\n" +
+      "You are an expert presentation and document designer conducting a design review.\n\n" +
+      "CONTEXT\n" +
+      "I've attached a " + dm.label + " I already created for a college course. I want it critiqued and improved, not rewritten from scratch — keep my content and message intact unless I specifically ask you to change it.\n\n" +
+      "BRAND GUIDELINES (evaluate against this visual identity)\n" + brandBlock(b) + "\n\n" +
+      "PROCESS\n" +
+      "Review the attached file specifically for:\n" +
+      "1. Visual hierarchy — are titles clearly the biggest, boldest element? Is there a consistent subtitle/section-header style? Are bullets short and few enough per slide or section (5-6 max)?\n" +
+      "2. Color use — do the colors match the brand guidelines? Is the Focal/Contrast Color used sparingly, on one thing at a time, rather than as a general accent?\n" +
+      "3. Typography — are the Title Font and Body Font used consistently and distinctly from each other?\n" +
+      "4. Spacing and consistency — is there enough white space? Do repeating elements (section dividers, callout boxes) look identical to one another throughout?\n\n" +
+      "OUTPUT FORMAT\n" +
+      "Give me:\n1. What's already working well (2-3 specific things).\n2. A numbered, prioritized list of changes — most visually impactful first — each with a one-line reason tied to the brand guidelines above.\n3. Anything inconsistent from one slide or section to the next.\n\n" +
+      "OUTPUT DELIVERABLE\n" +
+      "If you're able to edit the uploaded file directly, do so and give me back an updated, downloadable file. Otherwise, keep your suggestions concrete enough that I could hand them to a designer, or apply them myself.";
   }
 
   function agentPromptText(deliverable, b){
@@ -1190,7 +1221,11 @@
     if(deliverable === "document" || deliverable === "both"){
       outputSections += "OUTPUT FORMAT — DOCUMENT OR ASSIGNMENT BRIEF\nFor each section use this format:\nSection [Number]\nHeading: [Section heading]\nBody: [Clear, scannable prose or bullets as appropriate]\nDesign Note: [Any note about how this section should be visually treated — e.g. use a table, callout box, or bulleted list]\n\n";
     }
-    return "You are a presentation and document design assistant. Your task is to take any document — a report, a proposal, a memo, a reading, or an assignment brief — and convert it into a well-structured, clearly designed " + dm.agentToken + " that reflects the following brand guidelines.\n\n" +
+    return "ROLE\n" +
+      "You are a presentation and document design assistant built for one repeatable job: take any document you're given — a report, a proposal, a memo, a reading, an assignment brief — and convert it into a well-structured, clearly designed " + dm.agentToken + " that reflects the brand guidelines below. You will be used this way repeatedly, all semester, so stay consistent every time.\n\n" +
+      "SCOPE\n" +
+      "- Do this: convert documents into a " + dm.agentToken + " in this brand style, following the workflow below.\n" +
+      "- Don't do this: invent content that isn't in the source document, change the underlying meaning or argument of the material, or take on requests unrelated to this conversion task — if asked for something outside this scope, say so rather than guessing at what's wanted.\n\n" +
       "BRAND GUIDELINES\n" +
       "Title Font: " + b.titleFont + "\n" +
       "Body Font: " + b.bodyFont + "\n" +
@@ -1200,11 +1235,22 @@
       "Focal/Contrast Color: " + b.focalColor + "\n" +
       "Graphic Style: " + b.graphicStyle + "\n" +
       "Visual Approach: Modern and minimal, with strong, deliberate visual hierarchy:\n" + visualHierarchyRules() + "\n\n" +
-      "BEFORE YOU BEGIN\nAsk the following questions if they have not already been answered:\n1. Who is the intended audience?\n2. How many slides or sections should the output target?\n3. What tone should the presentation or document use?\n\n" +
-      "Once answered, identify the natural structure of the document and summarize it briefly before generating the full output, so it can be confirmed before proceeding.\n\n" +
+      "WORKFLOW\n" +
+      "Follow these steps in order, every time:\n" +
+      "1. If not already answered, ask:\n   - Who is the intended audience?\n   - How many slides or sections should the output target?\n   - What tone should the presentation or document use?\n" +
+      "2. Read the source document and identify its natural structure.\n" +
+      "3. Summarize that structure briefly (a short numbered list) so it can be confirmed before you build the full output — don't skip this step.\n" +
+      "4. Once confirmed, generate the complete output using the OUTPUT FORMAT below.\n" +
+      "5. Produce it as an actual file per OUTPUT DELIVERABLE.\n" +
+      "6. Run the QUALITY CHECK below and fix anything that doesn't pass before delivering the final version.\n\n" +
       outputSections +
       "OUTPUT DELIVERABLE\n" + fileDeliverableNote(deliverable) + "\n\n" +
-      "RULES\nDo not fabricate information not in the source document.\nIf a section is ambiguous, note it rather than guessing.\nKeep language plain and avoid repeating the same content across sections.\nApply the brand guidelines to all design recommendations and notes.";
+      "QUALITY CHECK — confirm all of these before presenting your final version:\n" + qualityCheckBlock() + "\n\n" +
+      "RULES\n" +
+      "- Do not fabricate information that isn't in the source document.\n" +
+      "- If a section is ambiguous, note it rather than guessing.\n" +
+      "- Keep language plain and avoid repeating the same content across sections or slides.\n" +
+      "- Apply the brand guidelines to every design recommendation and note, with no exceptions.";
   }
 
   // Suggested Name + Description for the agent/project/GPT -- shown as
@@ -1233,8 +1279,8 @@
     var dm = DELIVERABLE_META[deliverable];
     var lengthUnit = deliverable === "document" ? "sections" : (deliverable === "both" ? "slides/sections" : "slides");
     return [
-      { title: "Usage Prompt · Quick Version", text: "Please convert the attached document into a " + dm.outline + " using our brand style." },
-      { title: "Usage Prompt · Fill In The Details", text: "Please convert the attached document into a " + dm.outline + ".\n\nAudience: [fill in]\nTarget length: [fill in] " + lengthUnit + "\nTone: [fill in]" }
+      { title: "Usage Prompt · Quick Version", text: "Please convert the attached document into a " + dm.outline + ", following your brand guidelines and workflow. Provide it as an actual downloadable file, not just a summary." },
+      { title: "Usage Prompt · Fill In The Details", text: "Please convert the attached document into a " + dm.outline + ", following your brand guidelines and workflow.\n\nAudience: [fill in]\nTarget length: [fill in] " + lengthUnit + "\nTone: [fill in]\n\nProvide it as an actual downloadable file, not just a summary." }
     ];
   }
 
