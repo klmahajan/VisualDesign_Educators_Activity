@@ -233,6 +233,21 @@
   .btn-link{ background:none; border:none; color: var(--primary); font-weight:700; font-family:inherit; cursor:pointer; font-size: 14px; padding: 6px 0;}
   .btn-sm{ padding: 8px 14px; font-size: 13px; }
 
+  /* Step 4 palette picker */
+  .palette-picker{ margin-bottom: 20px; }
+  .palette-grid{ display:grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 6px; }
+  .palette-card{
+    border: 2px solid var(--border); background: var(--surface-alt); border-radius: var(--radius-md);
+    padding: 12px 10px; cursor:pointer; font-family: inherit; display:flex; flex-direction:column;
+    align-items:center; gap: 8px; text-align:center; transition: border-color .12s ease;
+  }
+  .palette-card:hover{ border-color: var(--primary); }
+  .palette-card.selected{ border-color: var(--primary); background: var(--primary-soft); }
+  .swatch-row{ display:flex; gap: 4px; }
+  .swatch{ width: 16px; height:16px; border-radius:50%; display:inline-block; }
+  .swatch-neutral{ border: 1px solid var(--border); }
+  .palette-name{ font-size: 11.5px; font-weight: 700; color: var(--text); line-height:1.3; }
+
   /* Step 4 defaults panel */
   .defaults-panel{
     border: 2px solid var(--primary); background: var(--primary-soft);
@@ -254,6 +269,13 @@
     color: var(--text);
   }
   .field input[type="text"]:focus, .field select:focus{ outline: 2px solid var(--primary); outline-offset: 1px; }
+  .chip-row-wrap{ display:flex; flex-wrap:wrap; gap: 6px; margin-top: 8px; }
+  .chip-btn{
+    font-family: inherit; font-size: 12px; font-weight: 600; color: var(--text-muted);
+    background: var(--surface-alt); border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 12px; cursor:pointer;
+  }
+  .chip-btn:hover{ border-color: var(--primary); color: var(--primary); }
   .color-field{ display:flex; align-items:center; gap: 8px; }
   .color-field input[type="color"]{
     width: 42px; height: 40px; padding: 0; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
@@ -366,7 +388,7 @@
     secondaryColor: "#0D9488",
     neutralColor: "#F8F9FF",
     focalColor: "#F97316",
-    graphicStyle: "arrows"
+    graphicStyle: "Minimal arrows and dividers"
   };
 
   var state = {
@@ -376,17 +398,31 @@
     task: null,              // generate | improve | agent
     customizing: false,
     branding: Object.assign({}, DEFAULT_BRANDING),
+    selectedPalette: "signature", // id into PALETTES, or null once colors are hand-edited
     theme: "light"
   };
 
   var STEP_LABELS = ["What to make", "AI tool(s)", "Your goal", "Branding"];
 
-  var GRAPHIC_LABELS = {
-    line: "Simple line icons",
-    geometric: "Filled geometric shapes",
-    arrows: "Minimal arrows and dividers",
-    none: "No graphics, text only",
-    unsure: "I am not sure yet"
+  // Free-text suggestions shown as quick-fill chips under the Graphic Style field.
+  var GRAPHIC_SUGGESTIONS = [
+    "Simple line icons",
+    "Filled geometric shapes",
+    "Minimal arrows and dividers",
+    "No graphics, text only",
+    "I am not sure yet"
+  ];
+
+  // Curated starting palettes, each checked for accessible contrast (title vs.
+  // background, body ink vs. background, and auto-picked button text vs. focal
+  // color all clear WCAG AA). Selecting one fills in all four color fields as
+  // a starting point -- every field stays fully editable afterward.
+  var PALETTES = {
+    signature: { name: "Signature Blue & Teal", primary:"#2358CF", secondary:"#0D9488", neutral:"#F8F9FF", focal:"#F97316" },
+    purple:    { name: "Deep Purple & Gold",    primary:"#6D28D9", secondary:"#B45309", neutral:"#FAF7FF", focal:"#EA580C" },
+    forest:    { name: "Forest & Amber",        primary:"#166534", secondary:"#A16207", neutral:"#F6FAF6", focal:"#EA580C" },
+    slate:     { name: "Slate & Coral",         primary:"#334155", secondary:"#0EA5E9", neutral:"#F8FAFC", focal:"#E8543F" },
+    crimson:   { name: "Crimson & Charcoal",    primary:"#9F1D31", secondary:"#3F3F46", neutral:"#FAFAFA", focal:"#D4A017" }
   };
 
   var DELIVERABLE_META = {
@@ -506,6 +542,7 @@
     state.task = null;
     state.customizing = false;
     state.branding = Object.assign({}, DEFAULT_BRANDING);
+    state.selectedPalette = "signature";
     window.scrollTo(0,0);
     render();
   }
@@ -523,11 +560,34 @@
   }
   function selectTask(v){ state.task = v; render(); }
   function useDefaults(){
-    state.branding = Object.assign({}, DEFAULT_BRANDING);
+    // "Use this style" keeps whichever palette is currently selected (the
+    // signature palette if none was touched) plus the default fonts/graphic
+    // style -- it does not discard a palette choice made before clicking it.
+    var palette = PALETTES[state.selectedPalette] || PALETTES.signature;
+    state.branding = Object.assign({}, DEFAULT_BRANDING, {
+      primaryColor: palette.primary, secondaryColor: palette.secondary,
+      neutralColor: palette.neutral, focalColor: palette.focal
+    });
     state.customizing = false;
     goTo("output");
   }
   function openCustomize(){ state.customizing = true; render(); }
+  function selectPalette(id){
+    var p = PALETTES[id];
+    if(!p) return;
+    state.selectedPalette = id;
+    state.branding.primaryColor = p.primary;
+    state.branding.secondaryColor = p.secondary;
+    state.branding.neutralColor = p.neutral;
+    state.branding.focalColor = p.focal;
+    render();
+  }
+  function applyGraphicSuggestion(text){
+    state.branding.graphicStyle = text;
+    var el = document.getElementById("f-graphicStyle");
+    if(el) el.value = text;
+    updatePreview();
+  }
 
   /* ---------------------------------------------------------------------
      RENDER: SHELL
@@ -698,11 +758,14 @@
      STEP 4
   --------------------------------------------------------------------- */
   function renderStep4(){
-    var html = '<div class="card"><p class="step-eyebrow">Step 4</p><h2 class="step-title">Your Branding Choices</h2><p class="step-sub">Use our defaults for speed, or customize a few fields to match your own course or department style.</p>';
+    var paletteName = (PALETTES[state.selectedPalette] || {}).name || "your custom colors";
+    var html = '<div class="card"><p class="step-eyebrow">Step 4</p><h2 class="step-title">Your Branding Choices</h2><p class="step-sub">Pick a starting palette, then use our defaults for speed or customize further to match your own course or department style.</p>';
+
+    html += renderPalettePicker();
 
     html += '<div class="defaults-panel">' +
-      '<div class="txt"><strong>Use the default style</strong><span>Montserrat, blue/teal palette, modern minimal.</span></div>' +
-      '<button class="btn btn-primary" onclick="App.useDefaults()">Use the default style →</button>' +
+      '<div class="txt"><strong>Use this style</strong><span>Montserrat, ' + paletteName + ', modern minimal.</span></div>' +
+      '<button class="btn btn-primary" onclick="App.useDefaults()">Use this style →</button>' +
     '</div>';
 
     if(!state.customizing){
@@ -718,10 +781,29 @@
     return html;
   }
 
+  function renderPalettePicker(){
+    var html = '<div class="palette-picker"><div class="preview-label">Pick a Starting Palette</div><div class="palette-grid">';
+    Object.keys(PALETTES).forEach(function(id){
+      var p = PALETTES[id];
+      var sel = state.selectedPalette === id;
+      html += '<button class="palette-card' + (sel?" selected":"") + '" data-palette="' + id + '" onclick="App.selectPalette(\'' + id + '\')">' +
+        '<span class="swatch-row">' +
+          '<span class="swatch" style="background:' + p.primary + '"></span>' +
+          '<span class="swatch" style="background:' + p.secondary + '"></span>' +
+          '<span class="swatch swatch-neutral" style="background:' + p.neutral + '"></span>' +
+          '<span class="swatch" style="background:' + p.focal + '"></span>' +
+        '</span>' +
+        '<span class="palette-name">' + p.name + '</span>' +
+      '</button>';
+    });
+    html += '</div><p class="note">Choosing a palette fills in the color fields below as a starting point &mdash; every color stays fully editable.</p></div>';
+    return html;
+  }
+
   function renderCustomFields(){
     var b = state.branding;
-    var graphicOpts = ["line","geometric","arrows","none","unsure"].map(function(k){
-      return '<option value="' + k + '"' + (b.graphicStyle===k?" selected":"") + '>' + GRAPHIC_LABELS[k] + '</option>';
+    var chips = GRAPHIC_SUGGESTIONS.map(function(g){
+      return '<button type="button" class="chip-btn" onclick="App.applyGraphicSuggestion(' + JSON.stringify(g).replace(/"/g,'&quot;') + ')">' + g + '</button>';
     }).join("");
 
     return '' +
@@ -740,7 +822,10 @@
         '<div class="field"><label>Focal / Contrast Color</label><div class="color-field">' +
           '<input type="color" id="c-focalColor" value="' + b.focalColor + '">' +
           '<input type="text" id="h-focalColor" value="' + b.focalColor + '"></div></div>' +
-        '<div class="field" style="grid-column: 1 / -1;"><label>Graphic Style</label><select id="f-graphicStyle">' + graphicOpts + '</select></div>' +
+        '<div class="field" style="grid-column: 1 / -1;"><label>Graphic Style</label>' +
+          '<input type="text" id="f-graphicStyle" value="' + escapeHtml(b.graphicStyle) + '" placeholder="Describe it in your own words, or pick a suggestion below">' +
+          '<div class="chip-row-wrap">' + chips + '</div>' +
+        '</div>' +
       '</div>' +
       '<div class="preview-wrap">' +
         '<div class="preview-label">Live Preview</div>' +
@@ -765,6 +850,18 @@
     unsure: '<svg width="30" height="30" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg"><rect x="1" y="1" width="28" height="28" rx="6" fill="none" stroke="CUR" stroke-width="2" stroke-dasharray="4 3"/><text x="15" y="20" font-size="14" text-anchor="middle" fill="CUR" font-family="sans-serif">?</text></svg>'
   };
 
+  // Graphic Style is now free text, so the preview icon is chosen by loose
+  // keyword match against the five canonical suggestions, falling back to a
+  // generic placeholder icon for anything custom the user types.
+  function pickGraphicIconKey(text){
+    var t = (text || "").toLowerCase();
+    if(t.indexOf("no graphic") > -1 || t.indexOf("text only") > -1) return "none";
+    if(t.indexOf("line") > -1) return "line";
+    if(t.indexOf("geometric") > -1 || t.indexOf("shape") > -1) return "geometric";
+    if(t.indexOf("arrow") > -1 || t.indexOf("divider") > -1) return "arrows";
+    return "unsure";
+  }
+
   function wireStep4Inputs(){
     ["titleFont","bodyFont"].forEach(function(f){
       var el = document.getElementById("f-" + f);
@@ -776,18 +873,19 @@
       if(colorEl) colorEl.addEventListener("input", function(){
         state.branding[f] = colorEl.value;
         hexEl.value = colorEl.value;
+        state.selectedPalette = null; // hand-edited: no longer an exact preset match
         updatePreview();
       });
       if(hexEl) hexEl.addEventListener("input", function(){
         var v = normalizeHex(hexEl.value);
-        if(isValidHex(v)){ state.branding[f] = v; colorEl.value = v; updatePreview(); }
+        if(isValidHex(v)){ state.branding[f] = v; colorEl.value = v; state.selectedPalette = null; updatePreview(); }
       });
       if(hexEl) hexEl.addEventListener("blur", function(){
         if(!isValidHex(normalizeHex(hexEl.value))) hexEl.value = state.branding[f];
       });
     });
     var gs = document.getElementById("f-graphicStyle");
-    if(gs) gs.addEventListener("change", function(){ state.branding.graphicStyle = gs.value; updatePreview(); });
+    if(gs) gs.addEventListener("input", function(){ state.branding.graphicStyle = gs.value; updatePreview(); });
   }
 
   function updatePreview(){
@@ -811,7 +909,7 @@
     tag.style.color = bestTextColor(b.secondaryColor);
     tag.style.fontFamily = parseFontCss(b.bodyFont);
     var g = document.getElementById("previewGraphic");
-    g.innerHTML = (GRAPHIC_SVG[b.graphicStyle] || "").split("CUR").join(b.primaryColor);
+    g.innerHTML = (GRAPHIC_SVG[pickGraphicIconKey(b.graphicStyle)] || "").split("CUR").join(b.primaryColor);
 
     var titleRatio = contrastRatio(b.primaryColor, b.neutralColor);
     var bodyRatio = contrastRatio(ink, b.neutralColor);
@@ -821,6 +919,12 @@
       '<span class="badge ' + tb.cls + '">Title: ' + tb.text + '</span>' +
       '<span class="badge ' + bb.cls + '">Body: ' + bb.text + '</span>' +
       '<span class="badge ' + ub.cls + '">Button: ' + ub.text + '</span>';
+
+    // Keep the palette-card highlight honest after a hand-edit clears it,
+    // without a full re-render (which would drop input focus mid-keystroke).
+    document.querySelectorAll(".palette-card").forEach(function(el){
+      el.classList.toggle("selected", el.getAttribute("data-palette") === state.selectedPalette);
+    });
   }
 
   /* ---------------------------------------------------------------------
@@ -1017,7 +1121,7 @@
       "- Secondary Color: " + b.secondaryColor + "\n" +
       "- Background/Neutral Color: " + b.neutralColor + "\n" +
       "- Focal/Contrast Color: " + b.focalColor + "\n" +
-      "- Graphic Style: " + GRAPHIC_LABELS[b.graphicStyle] + "\n" +
+      "- Graphic Style: " + b.graphicStyle + "\n" +
       "- Visual Approach: Modern and minimal. Strong visual hierarchy. Good white space. Accessible contrast. Consistent use of fonts and colors throughout.";
   }
 
@@ -1064,7 +1168,7 @@
       "Secondary Color: " + b.secondaryColor + "\n" +
       "Background/Neutral Color: " + b.neutralColor + "\n" +
       "Focal/Contrast Color: " + b.focalColor + "\n" +
-      "Graphic Style: " + GRAPHIC_LABELS[b.graphicStyle] + "\n" +
+      "Graphic Style: " + b.graphicStyle + "\n" +
       "Visual Approach: Modern and minimal. Strong visual hierarchy. Generous white space. All color combinations must meet accessible contrast standards. Fonts and colors are used consistently across all materials.\n\n" +
       "BEFORE YOU BEGIN\nAsk the following questions if they have not already been answered:\n1. Who is the intended audience?\n2. How many slides or sections should the output target?\n3. What tone should the presentation or document use?\n\n" +
       "Once answered, identify the natural structure of the document and summarize it briefly before generating the full output, so it can be confirmed before proceeding.\n\n" +
@@ -1087,7 +1191,8 @@
     goTo: goTo, startOver: startOver, toggleTheme: toggleTheme,
     selectDeliverable: selectDeliverable, toggleTool: toggleTool, selectTask: selectTask,
     useDefaults: useDefaults, openCustomize: openCustomize, finishCustomize: finishCustomize,
-    copyPrompt: copyPrompt, downloadPdf: downloadPdf
+    copyPrompt: copyPrompt, downloadPdf: downloadPdf,
+    selectPalette: selectPalette, applyGraphicSuggestion: applyGraphicSuggestion
   };
 
   render();
